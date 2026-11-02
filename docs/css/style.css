@@ -25,17 +25,7 @@
   --radius-sm: 8px;
   --shadow: 0 1px 2px rgba(18, 42, 43, .06), 0 6px 20px rgba(18, 42, 43, .06);
   --max: 1040px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e1b1f; --surface: #14252a; --surface-2: #1a3038; --fg: #e4f1f3; --muted: #93adb2;
-    --line: #29434b; --accent: #3fc29a; --accent-strong: #84dec1; --accent-soft: #1a3b33;
-    --sky: #6fb6dc; --sky-soft: #1b3442;
-    --risk-low: #3fc29a; --risk-mid: #e2a93a; --risk-high: #ec7468;
-    --risk-low-soft: #1a3b33; --risk-mid-soft: #3d311a; --risk-high-soft: #43221f;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
-    color-scheme: dark;
-  }
+  color-scheme: light; /* 라이트 모드 전용 (기기 다크 모드 무시) */
 }
 
 /* ---------- 기본 ---------- */
@@ -88,7 +78,6 @@ main:focus { outline: none; }
 .nav a.active { color: var(--accent-strong); background: var(--accent-soft); }
 .nav a.nav-cta { color: #fff; background: var(--accent); }
 .nav a.nav-cta:hover, .nav a.nav-cta.active { background: var(--accent-strong); color: #fff; }
-@media (prefers-color-scheme: dark) { .nav a.nav-cta, .nav a.nav-cta:hover, .nav a.nav-cta.active { color: #0e1b1f; } }
 @media (max-width: 640px) {
   .header-inner { flex-direction: column; align-items: stretch; gap: 4px; padding-block: 10px 8px; }
   .nav { margin-inline: -8px; }
@@ -116,7 +105,6 @@ main:focus { outline: none; }
 .btn:active { transform: translateY(1px); }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: var(--accent-strong); }
-@media (prefers-color-scheme: dark) { .btn-primary, .btn-primary:hover { color: #0e1b1f; } }
 .btn-ghost { background: var(--surface); border-color: var(--line); color: var(--fg); }
 .btn-ghost:hover { border-color: var(--accent); }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -214,7 +202,6 @@ a.tag:hover { background: var(--accent-soft); }
   cursor: pointer; font-weight: 600;
 }
 .tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-@media (prefers-color-scheme: dark) { .tab[aria-selected="true"] { color: #0e1b1f; } }
 .axis-panel ul { margin: 14px 0 0; padding-left: 20px; display: grid; gap: 8px; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
 .stat { background: var(--surface-2); border-radius: var(--radius-sm); padding: 14px; }

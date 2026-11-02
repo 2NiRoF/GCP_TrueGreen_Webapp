@@ -15,7 +15,8 @@
 | 소개 | `#/about` | 프로젝트 목적, 참고 기준, 설문 링크 |
 
 ```
-webapp/
+docs/                ← GitHub Pages가 이 폴더를 사이트로 배포
+├─ .nojekyll         빈 파일 (지우지 말 것)
 ├─ index.html        뼈대 (메뉴, 푸터)
 ├─ css/style.css     디자인 (색상은 맨 위 :root 변수)
 ├─ js/app.js         화면 로직 (보통 수정할 필요 없음)
@@ -58,12 +59,14 @@ webapp/
 
 ## 배포 (GitHub Pages)
 
-1. GitHub에서 새 저장소 생성 (Public)
-2. 이 폴더 안의 파일 전체를 업로드 (`index.html`이 저장소 최상단에 오도록)
-3. Settings → Pages → Branch: `main` / `/ (root)` → Save
-4. 1-2분 후 `https://<계정명>.github.io/<저장소명>/` 으로 접속
+사이트 파일은 저장소의 `docs/` 폴더에 있습니다.
 
-Vercel을 쓸 경우: Import Project → 저장소 선택 → Framework Preset "Other" → Deploy.
+1. 저장소를 Public으로 설정 (무료 계정은 Public 저장소만 Pages 사용 가능)
+2. Settings → Pages → Source: "Deploy from a branch" → Branch: `main` / `/docs` → Save
+3. 1-2분 후 `https://<계정명>.github.io/<저장소명>/` 으로 접속
+4. 이후 `main`에 push하면 자동으로 다시 배포됩니다 (진행 상황: 저장소 Actions 탭)
+
+Vercel을 쓸 경우: Import Project → 저장소 선택 → Framework Preset "Other" → Root Directory를 `docs`로 지정 → Deploy.
 
 ## 방문 통계 (선택)
 

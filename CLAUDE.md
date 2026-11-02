@@ -4,12 +4,13 @@
 담당: 박정후(웹 전담). 콘텐츠(조사 자료)는 모둠원 5명이 채움. 종료 후 교내 환경동아리에 인계 예정.
 
 ## 기술 구조
-- 사이트 파일은 `webapp/` 아래에 있음
+- 사이트 파일은 `docs/` 아래에 있음 (GitHub Pages "main 브랜치 /docs" 배포용. 폴더명 변경 금지)
+  - `docs/.nojekyll`: Jekyll 처리 끄기용 빈 파일. 지우지 말 것
 - 정적 사이트 (HTML/CSS/vanilla JS, 빌드 도구·서버 없음). index.html 더블클릭으로 실행 가능해야 함
   - 그래서 데이터는 JSON fetch가 아니라 `window.GW_*` 전역 변수 JS 파일로 둠 (file:// 에서 fetch 불가)
 - 해시 라우팅: `#/`, `#/learn`, `#/learn/<원칙id>`, `#/cases`, `#/quiz`, `#/check`, `#/about`
-- `webapp/js/app.js`: 라우터 + 페이지별 view 함수. 콘텐츠를 하드코딩하지 말 것
-- `webapp/data/*.js`: 모든 콘텐츠. 비개발자(모둠원, 동아리)가 수정하는 영역 - 주석으로 수정법 유지
+- `docs/js/app.js`: 라우터 + 페이지별 view 함수. 콘텐츠를 하드코딩하지 말 것
+- `docs/data/*.js`: 모든 콘텐츠. 비개발자(모둠원, 동아리)가 수정하는 영역 - 주석으로 수정법 유지
 - 배포 예정: GitHub Pages 또는 Vercel. 통계는 GoatCounter(config.js에 주소 넣으면 활성)
 
 ## 콘텐츠 기준
@@ -32,3 +33,18 @@
 ## 작업 규칙
 - 한국어 UI. 모바일 우선 (특강에서 휴대폰 사용)
 - 수정 후 index.html을 브라우저로 열어 콘솔 오류 확인
+
+## 디자인 개선 (AI 템플릿 느낌 제거) - 진행 예정
+방향: 그림자·알약형·그라데이션 없는 평면 디자인, 선과 타이포 중심, 강조색은 녹색 1개. 스택은 vanilla 유지 (React 전환 안 함)
+- [ ] eyebrow 라벨: 홈 히어로만 남기고 삭제 (app.js `class="eyebrow"`)
+- [ ] 버튼·탭·nav radius 999px → 6-8px
+- [ ] 카드 그림자 제거(`--shadow: none`), `--radius` 8px, 테두리만
+- [ ] 히어로 radial-gradient 배경 제거
+- [ ] 홈 기능 카드의 01-04 번호·"바로가기 →" 제거
+- [ ] 원칙 카드 기호 아이콘 박스(.signal-icon) 제거 → 원칙 번호(①-⑧)를 크게
+- [ ] 가상 광고 이모지(adCard) 제거 → 브랜드명 중심 타이포 시안
+- [ ] 글꼴 IBM Plex Sans KR → Pretendard
+- [ ] 진행 바 그라데이션 제거, 파랑(--sky)은 배경 톤에만
+- [ ] "→" 화살표는 다음/결과 버튼에만
+- [ ] (추가) 결과 화면 좌측 정렬·큰 숫자, 8대 원칙 카드 → 표/번호 목록, 실제 라벨 사진(김형서)
+- 참고: SHIUI(shi-ui.vercel.app)의 무그림자·1.5px 선·3색 체계를 CSS로만 차용, 레퍼런스는 minimal.gallery Environmental/Editorial/Non-profit
