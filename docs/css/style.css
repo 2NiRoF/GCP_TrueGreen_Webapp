@@ -147,16 +147,20 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 .photo-card .meta { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--line); font-size: .82rem; color: var(--muted); }
 
 /* ---------- 홈 ---------- */
-/* 히어로: 화면 가득 사진 1장 + 큰 글자 오버레이 (사진이 없으면 진한 단색 배경) */
+/* 히어로: 화면 가득 사진 1장 + 큰 글자 오버레이 (사진이 없으면 진한 단색 배경)
+   사진(.hero-bg)은 화면에 고정되고 글자·섹션만 스크롤됨.
+   01 섹션의 세 질문이 모두 화면에 들어오면 사진·히어로 글자가 완전히 투명해짐 (app.js heroFade) */
 .hero-full {
-  position: relative; overflow: hidden; color: #fff; background: var(--fg);
+  position: relative; color: #fff;
   min-height: min(88svh, 880px); display: flex; align-items: flex-end;
 }
-.hero-bg { position: absolute; inset: 0; }
+.hero-bg { position: fixed; inset: 0; z-index: 0; background: var(--fg); pointer-events: none; will-change: opacity; }
 .hero-bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hero-full.has-photo .hero-bg::after { content: ""; position: absolute; inset: 0; background: rgba(8, 24, 22, .6); }
-.hero-hint { position: absolute; top: 20px; right: 20px; font-size: .8rem; color: rgba(255, 255, 255, .55); border: 1px dashed rgba(255, 255, 255, .35); padding: 4px 10px; border-radius: 4px; }
-.hero-content { position: relative; width: 100%; padding-block: 120px 64px; }
+.hero-hint { position: absolute; top: 80px; right: 20px; font-size: .8rem; color: rgba(255, 255, 255, .55); border: 1px dashed rgba(255, 255, 255, .35); padding: 4px 10px; border-radius: 4px; }
+.hero-content { position: relative; z-index: 1; width: 100%; padding-block: 120px 64px; }
+/* 고정 사진보다 위에 그려지도록 홈의 나머지 섹션도 쌓임 순서를 올림 */
+.hero-full ~ section { position: relative; z-index: 1; }
 .hero-full h1 { font-size: clamp(2.6rem, 9vw, 7.5rem); line-height: 1.04; letter-spacing: -0.045em; }
 .hero-full h1 em { font-style: normal; color: var(--accent-on-dark); }
 .hero-full .lead { font-size: clamp(1.05rem, 2.2vw, 1.3rem); color: rgba(255, 255, 255, .85); margin-top: 24px; max-width: 560px; }
@@ -164,6 +168,9 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 .hero-full .btn-ghost, .band-dark .btn-ghost { border-color: #fff; color: #fff; }
 .hero-full .btn-ghost:hover, .band-dark .btn-ghost:hover { background: rgba(255, 255, 255, .1); }
 @media (max-width: 640px) { .hero-full { min-height: min(82svh, 680px); } .hero-content { padding-block: 96px 40px; } }
+/* 01 섹션은 불투명한 밝은 바탕: 고정된 사진 위로 '막'처럼 올라와 덮음 → 01 글자는 항상 밝은 바탕 위
+   히어로 글자는 사진과 같은 비율로 함께 옅어짐 (글자색 전환 없음) */
+.ask-sec { background: var(--bg); }
 
 /* 01. 좌우 분할: 왼쪽 고정 제목 + 오른쪽 큰 질문 목록 */
 .split { display: grid; grid-template-columns: 5fr 7fr; gap: 48px; align-items: start; }
@@ -256,19 +263,11 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 .example.fashion b { color: var(--fg); }
 .basis { font-size: .82rem; color: var(--muted); }
 
-/* ---------- 가짜 광고 카드 (퀴즈) - 브랜드명 중심 타이포 ---------- */
-.ad { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
-.ad-visual {
-  min-height: 140px; display: flex; align-items: flex-end; padding: 18px;
-  font-size: clamp(1.8rem, 7vw, 2.6rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.1;
-}
-.ad-body { padding: 16px 18px 18px; border-top: 1px solid var(--line); }
-.ad-brand { font-size: .82rem; font-weight: 600; color: var(--muted); }
-.ad-copy { font-size: 1.12rem; font-weight: 600; margin-top: 4px; }
-.ad-label { position: absolute; top: 12px; right: 12px; font-size: .72rem; border: 1px solid currentColor; color: var(--fg); padding: 1px 7px; border-radius: 4px; }
-.look-leaf, .look-cert, .look-badge, .look-forest { background: var(--accent-soft); color: var(--accent-strong); }
-.look-sky, .look-wave, .look-spray { background: var(--sky-soft); color: var(--fg); }
-.look-plain { background: var(--surface-2); color: var(--fg); }
+/* ---------- 가짜 광고 카드 (퀴즈) - 광고 문구가 주인공, 브랜드는 캡션 ---------- */
+.ad { margin: 0; background: var(--surface); border: 1.5px solid var(--fg); border-radius: var(--radius-sm); padding: 16px 20px 22px; }
+.ad-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: .82rem; color: var(--muted); padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.ad-label { flex: none; font-size: .74rem; letter-spacing: .02em; }
+.ad-copy { margin: 16px 0 0; font-size: clamp(1.3rem, 5.2vw, 1.7rem); font-weight: 700; line-height: 1.35; letter-spacing: -0.02em; }
 
 /* ---------- 알아보기 ---------- */
 .page-head { padding-block: 48px 8px; }
@@ -332,17 +331,43 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 }
 .option:hover:not(:disabled) { border-color: var(--fg); }
 .option:disabled { cursor: default; }
-.option.correct { border-color: var(--risk-low); background: var(--risk-low-soft); }
-.option.wrong { border-color: var(--risk-high); background: var(--risk-high-soft); }
-.option.dim { opacity: .55; }
 .option.selected, .option[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
-.feedback { margin-top: 16px; border-radius: var(--radius); padding: 18px; animation: rise .25s ease; }
-.feedback.ok { background: var(--risk-low-soft); }
-.feedback.no { background: var(--risk-high-soft); }
-.feedback h4 { font-size: 1rem; margin-bottom: 6px; }
-.feedback .tag { margin-top: 10px; }
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+/* 퀴즈: 번호 + 문항 눈금 */
+.quiz-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.quiz-no { flex: none; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.quiz-no b { font-size: 1.6rem; font-weight: 700; color: var(--fg); letter-spacing: -0.03em; }
+.ticks { flex: 1; display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.ticks li { flex: 1; height: 4px; background: var(--line); }
+.ticks li.now { background: var(--fg); }
+.ticks li.ok { background: var(--risk-low); }
+.ticks li.no { background: var(--risk-high); }
+/* 퀴즈 선택지: 상자 대신 선으로 나눈 목록 */
+.qopts { border-top: 1px solid var(--line); }
+.qopt {
+  display: grid; grid-template-columns: 1.6em 1fr auto; gap: 10px; align-items: baseline;
+  width: 100%; text-align: left; padding: 15px 4px; min-height: 52px;
+  background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+  font: inherit; font-weight: 500; color: var(--fg); cursor: pointer;
+}
+.qopt .k { font-weight: 700; color: var(--muted); }
+.qopt .v { font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.qopt:hover:not(:disabled) .t { text-decoration: underline; text-underline-offset: 4px; }
+.qopt:hover:not(:disabled) .k { color: var(--accent); }
+.qopt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.qopt:disabled { cursor: default; }
+.qopt.is-answer .k, .qopt.is-answer .v { color: var(--risk-low); }
+.qopt.is-answer .t { font-weight: 700; }
+.qopt.is-wrong .k, .qopt.is-wrong .v { color: var(--risk-high); }
+.qopt.is-wrong .t { text-decoration: line-through; text-decoration-color: var(--risk-high); }
+.qopt.is-dim { color: var(--muted); }
+/* 해설: 색 상자 대신 왼쪽 선 (판독기 .flag와 같은 문법) */
+.qexp { margin-top: 24px; padding-left: 16px; border-left: 3px solid var(--risk-low); display: grid; gap: 8px; justify-items: start; }
+.qexp.no { border-left-color: var(--risk-high); }
+.qexp .verdict { font-weight: 700; }
+.qexp.ok .verdict { color: var(--risk-low); }
+.qexp.no .verdict { color: var(--risk-high); }
+.qnext { margin-top: 24px; }
 .nav-row { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
 
 /* 시작·결과 화면: 좌측 정렬 + 큰 숫자 */
@@ -351,6 +376,56 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 .result-hero .score small { font-size: .35em; letter-spacing: 0; color: var(--muted); font-weight: 600; margin-left: 4px; }
 .result-hero p { color: var(--muted); max-width: 560px; }
 .result-hero .btn-row { margin-top: 8px; }
+
+/* ---------- 퀴즈 시작 화면: 「이 광고, ( ) 믿어도 될까?」 + 서식 라벨 ---------- */
+.qi { max-width: 920px; margin: 0 auto; }
+.qi-title { border-top: var(--rule); padding-top: 24px; display: grid; row-gap: .14em; line-height: 1.12; }
+/* 괄호는 제목 크기, 안의 문구는 한 단계 작게. 문구 칸은 2줄 높이로 고정해 문구가 바뀌어도 괄호가 흔들리지 않음 */
+.qi-bracket { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .15em; max-width: 11.5em; padding-block: .06em; }
+.qi-p { font-weight: 300; color: var(--accent); line-height: 1; }
+.qi-copy {
+  --qi-copy: clamp(1rem, 3.8vw, 2.1rem);
+  font-size: var(--qi-copy); line-height: 1.3; min-height: calc(var(--qi-copy) * 1.3);
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-weight: 600; letter-spacing: -0.02em; color: var(--fg);
+  transition: opacity .25s;
+}
+.qi-copy.is-out { opacity: 0; }
+/* 문구 칸 높이: 기본 1줄, 359px 이하만 2줄.
+   실측(Pretendard): 24자 문구는 330px 미만에서 줄바꿈, 360px에서 칸의 86%를 차지 → 360px부터 1줄로 둠 */
+@media (max-width: 359px) { .qi-copy { min-height: calc(var(--qi-copy) * 1.3 * 2); } }
+.qi-lead { margin-top: 32px; font-size: clamp(1.05rem, 2.4vw, 1.3rem); font-weight: 500; line-height: 1.65; max-width: 560px; }
+/* 서식 라벨: 작은 라벨 + 칸마다 위쪽 모서리(┌ ┐) 선 */
+.qi-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 40px 0 0; }
+.qi-field { position: relative; padding: 16px 14px 6px; }
+.qi-field::before, .qi-field::after {
+  content: ""; position: absolute; top: 0; width: 12px; height: 12px; border-top: 1.5px solid var(--fg);
+}
+.qi-field::before { left: 0; border-left: 1.5px solid var(--fg); }
+.qi-field::after { right: 0; border-right: 1.5px solid var(--fg); }
+.qi-field dt { font-size: .72rem; font-weight: 600; letter-spacing: .16em; color: var(--muted); }
+.qi-field dd { margin: 8px 0 0; display: grid; gap: 4px; }
+.qi-field dd b { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.qi-field dd span { font-size: .82rem; color: var(--muted); line-height: 1.4; }
+.qi-start { margin-top: 40px; }
+/* 좁은 화면: 서식 칸을 한 줄씩(라벨 | 값). 시작 버튼이 첫 화면 안에 들도록 간격 축소 */
+@media (max-width: 560px) {
+  .qi-sec { padding-top: 24px; }
+  .qi-title { padding-top: 18px; row-gap: .2em; }
+  .qi-lead { margin-top: 22px; font-size: 1.05rem; line-height: 1.65; }
+  .qi-fields { grid-template-columns: 1fr; gap: 0; margin-top: 24px; border-bottom: 1px solid var(--line); }
+  .qi-field { display: grid; grid-template-columns: 4.5em minmax(0, 1fr); align-items: baseline; gap: 10px; padding: 13px 12px 11px; }
+  .qi-field + .qi-field { border-top: 1px solid var(--line); }
+  .qi-field + .qi-field::before, .qi-field + .qi-field::after { display: none; }
+  .qi-field dd { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+  .qi-field dd b { font-size: 1rem; }
+  .qi-start { margin-top: 24px; }
+  .qi-start .btn { width: 100%; }
+}
+@media (max-width: 340px) {
+  .qi-field { padding-inline: 8px; }
+  .qi-field dd span { font-size: .76rem; }
+}
 .review { margin-top: 12px; display: grid; }
 .review-item { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: .94rem; }
 .review-item .mark { flex: none; font-weight: 700; width: 1.2em; }
@@ -445,3 +520,11 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 .tbl tbody th { white-space: nowrap; color: var(--accent-strong); }
 .sins { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); column-gap: 32px; }
 .sin { padding: 14px 0; border-bottom: 1px solid var(--line); display: grid; gap: 4px; align-content: start; }
+
+/* 퀴즈 해설에서 알아보기로 왔을 때의 '퀴즈로 돌아가기' 고정 바 (평면, 위쪽 굵은 선) */
+.back-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface); border-top: var(--rule); }
+.back-bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+.back-bar .btn { flex: none; }
+.back-spacer { height: 88px; }
+@media (max-width: 400px) { .back-bar span { display: none; } .back-bar .btn { width: 100%; } }

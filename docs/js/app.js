@@ -157,9 +157,23 @@
      ============================================================ */
   const routes = { "": viewHome, learn: viewLearn, cases: viewCases, quiz: viewQuiz, check: viewCheck, about: viewAbout };
 
+  // 페이지를 떠날 때 정리할 일(타이머 등). view 함수가 onLeave(fn)로 등록하면 다음 라우팅 직전에 실행
+  let leaveFns = [];
+  const onLeave = (fn) => leaveFns.push(fn);
+  const runLeave = () => { const fns = leaveFns; leaveFns = []; fns.forEach((fn) => fn()); };
+
+  // 퀴즈 화면(해설·결과)에서 원칙 링크(#/learn/...)를 눌러 알아보기로 간 경우 표시 → 알아보기에 '퀴즈로 돌아가기' 바를 띄움
+  // 알아보기 외의 페이지로 이동하면 해제
+  let fromQuiz = false;
+  app.addEventListener("click", (e) => {
+    if (location.hash.startsWith("#/quiz") && e.target.closest('a[href^="#/learn"]')) fromQuiz = true;
+  });
+
   function router() {
+    runLeave();
     const [name = "", param] = location.hash.replace(/^#\/?/, "").split("/");
     const view = routes[name] || viewHome;
+    if (name !== "learn") fromQuiz = false;
     document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === name));
     view(param);
     const titles = { learn: "알아보기", cases: "사례", quiz: "퀴즈", check: "판독기", about: "소개" };
@@ -203,7 +217,7 @@
         </div>
       </section>
 
-      <section class="sec">
+      <section class="sec ask-sec">
         <div class="wrap split">
           <div class="split-head">
             ${no()}
@@ -274,19 +288,49 @@
           </ol>
         </div>
       </section>`;
+    heroFade();
   }
 
-  // 가상 광고: 이모지 없이 브랜드명을 크게
+  // 홈 히어로: 사진은 화면에 고정, 01 섹션(밝은 바탕)이 그 위로 올라와 덮음
+  // 사진과 히어로 글자를 같은 비율로 옅게: 1(맨 위) → 0(01 섹션 마지막 질문 '누가 확인했나요?'의 아래 끝이 화면에 들어온 순간)
+  function heroFade() {
+    const bg = app.querySelector(".hero-bg");
+    const content = app.querySelector(".hero-content");
+    const last = app.querySelector(".ask-list li:last-child");
+    if (!bg || !content || !last) return;
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY;
+      const remain = last.getBoundingClientRect().bottom - window.innerHeight; // 남은 스크롤 거리
+      const end = y + remain;
+      const op = 1 - (end <= 0 ? 1 : Math.min(Math.max(y / end, 0), 1));
+      const hidden = op <= 0 ? "hidden" : ""; // 완전히 투명하면 버튼도 눌리지 않게
+      bg.style.opacity = content.style.opacity = op.toFixed(3);
+      bg.style.visibility = content.style.visibility = hidden;
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(onScroll); // 글꼴 로드 후 높이 변화 반영
+    update();
+    onLeave(() => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    });
+  }
+
+  // 가상 광고: 판단 대상인 광고 문구를 가장 크게, 브랜드·제품은 캡션으로
+  // (quiz.js의 look 값은 현재 화면에 쓰지 않음 - 데이터 호환용으로만 남김)
   function adCard(ad) {
     return `
-      <div class="ad">
-        <span class="ad-label">가상 광고</span>
-        <div class="ad-visual look-${esc(ad.look)}" aria-hidden="true">${esc(ad.brand)}</div>
-        <div class="ad-body">
-          <p class="ad-brand">${esc(ad.brand)} · ${esc(ad.product)}</p>
-          <p class="ad-copy">${esc(ad.copy)}</p>
-        </div>
-      </div>`;
+      <figure class="ad">
+        <figcaption class="ad-meta">
+          <span>${esc(ad.brand)} · ${esc(ad.product)}</span>
+          <span class="ad-label">가상 광고</span>
+        </figcaption>
+        <blockquote class="ad-copy">${esc(ad.copy)}</blockquote>
+      </figure>`;
   }
 
   // ---------- 알아보기 ----------
@@ -406,6 +450,17 @@
         </div>
       </section>`;
 
+    // 퀴즈 해설·결과에서 왔으면 화면 아래에 '퀴즈로 돌아가기' 고정 바 (진행 상태는 quizState에 남아 있어 그대로 이어짐)
+    if (fromQuiz && quizState) {
+      const where = quizState.done ? "결과 화면" : `${quizState.idx + 1} / ${quizState.items.length}번 문제`;
+      app.insertAdjacentHTML("beforeend", `
+        <div class="back-spacer" aria-hidden="true"></div>
+        <div class="back-bar"><div class="wrap">
+          <span class="small muted">퀴즈 ${esc(where)}에서 이동</span>
+          <a class="btn btn-primary" href="#/quiz">${quizState.done ? "퀴즈 결과로 돌아가기" : "퀴즈로 돌아가기"}</a>
+        </div></div>`);
+    }
+
     // #/learn/<signal> 로 들어오면 해당 원칙으로 이동
     if (focusId && signalById[focusId]) {
       const el = document.getElementById(`sig-${focusId}`);
@@ -487,22 +542,94 @@
   // { items: 출제 문항, idx: 현재 번호(0부터), results: [{ q, ok, picked }], done: 결과 화면 도달 여부 }
   let quizState = null;
 
+  // 시작 화면 괄호 안 문구 후보 (규칙은 quiz.js 상단 주석과 같게 유지)
+  // ad.short가 있으면 short, 없으면 copy. 이모지 제거 후 24자 이하, '[마크 설명]'이 든 문구는 제외
+  // 그린워싱 문구(bad)와 정상 광고 문구(good, signal: null)로 나눠 돌려줌
+  const INTRO_COPY_MAX = 24;
+  const introCopies = () => {
+    const clean = (t) => String(t || "")
+      .replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}️‍]/gu, "")
+      .replace(/\s+/g, " ").trim();
+    const ok = (t) => t && !t.includes("[") && [...t].length <= INTRO_COPY_MAX;
+    const out = { bad: [], good: [] };
+    QUIZ.pool.forEach((q) => {
+      const t = clean(q.ad.short || q.ad.copy);
+      if (ok(t)) out[q.signal ? "bad" : "good"].push(t);
+    });
+    return out;
+  };
+
+  // 두 종류를 번갈아 내보내는 순서 생성기. 한 종류를 다 쓰면 다시 섞어서 이어감(같은 문구 연속 방지)
+  // 한쪽 후보가 없으면 있는 쪽만 차례로
+  const alternator = ({ bad, good }) => {
+    const queues = { bad: [], good: [] };
+    const kinds = [bad.length && "bad", good.length && "good"].filter(Boolean);
+    let k = Math.floor(Math.random() * kinds.length), last = { bad: null, good: null };
+    return () => {
+      if (!kinds.length) return "";
+      const kind = kinds[k % kinds.length]; k++;
+      const src = kind === "bad" ? bad : good;
+      if (!queues[kind].length) {
+        queues[kind] = shuffled(src);
+        if (src.length > 1 && queues[kind][0] === last[kind]) queues[kind].push(queues[kind].shift());
+      }
+      return (last[kind] = queues[kind].shift());
+    };
+  };
+
   function viewQuiz() {
+    // 시작 화면의 문구 교체 타이머. 시작 버튼·페이지 이동 때 반드시 정리
+    let rotateTimer = null, fadeTimer = null;
+    const stopRotate = () => {
+      clearInterval(rotateTimer); clearTimeout(fadeTimer);
+      rotateTimer = fadeTimer = null;
+    };
+    onLeave(stopRotate);
+
     const start = () => {
+      stopRotate();
       quizState = { items: drawQuestions(), idx: -1, results: [], done: false };
       next();
     };
 
     const intro = () => {
+      stopRotate();
+      const I = QUIZ.intro || {};
+      const n = Math.min(QUIZ.drawCount, QUIZ.pool.length);
+      const vals = { 출제: n, 전체: QUIZ.pool.length, 정상: Math.min(QUIZ.minGood, n) };
+      const nextCopy = alternator(introCopies());
+      const first = nextCopy();
       app.innerHTML = `
-        <section class="section"><div class="wrap flow">
-          <div class="result-hero">
-                        <h1>이 광고, 믿어도 될까?</h1>
-            <p>가상의 광고 ${QUIZ.pool.length}개 중 ${Math.min(QUIZ.drawCount, QUIZ.pool.length)}개가 무작위로 나옵니다. 모든 광고가 그린워싱은 아닙니다. 근거가 잘 갖춰진 광고도 섞여 있습니다. 퀴즈 속 브랜드는 모두 가상입니다.</p>
-            <div class="btn-row"><button class="btn btn-primary" data-start>시작하기</button></div>
-          </div>
+        <section class="section qi-sec"><div class="wrap qi">
+          <h1 class="qi-title" aria-label="이 광고, 믿어도 될까?">
+            <span class="qi-line">이 광고,</span>
+            <span class="qi-bracket" aria-hidden="true"><span class="qi-p">(</span><span class="qi-copy">${esc(first)}</span><span class="qi-p">)</span></span>
+            <span class="qi-line">믿어도 될까?</span>
+          </h1>
+          ${I.lead ? `<p class="qi-lead">${esc(I.lead)}</p>` : ""}
+          ${(I.fields || []).length ? `
+          <dl class="qi-fields">
+            ${I.fields.map((f) => `
+              <div class="qi-field">
+                <dt>${esc(f.label)}</dt>
+                <dd><b>${esc(fill(f.value || "", vals))}</b>${f.note ? `<span>${esc(fill(f.note, vals))}</span>` : ""}</dd>
+              </div>`).join("")}
+          </dl>` : ""}
+          <div class="btn-row qi-start"><button class="btn btn-primary" data-start>시작하기 →</button></div>
         </div></section>`;
       app.querySelector("[data-start]").addEventListener("click", start);
+
+      // 3.5초마다 짧은 페이드로 교체. 동작 줄이기 설정이면 첫 문구 고정
+      const el = app.querySelector(".qi-copy");
+      const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (still) return;
+      rotateTimer = setInterval(() => {
+        el.classList.add("is-out");
+        fadeTimer = setTimeout(() => {
+          el.textContent = nextCopy();
+          el.classList.remove("is-out");
+        }, 250);
+      }, 3500);
     };
 
     const next = () => {
@@ -515,37 +642,50 @@
     const question = (q) => {
       const state = quizState, items = state.items;
       const n = state.idx + 1, total = items.length;
+      const keys = "ABCDE";
+      const pad = (x) => String(x).padStart(2, "0");
+      // 문항 눈금: 지난 문항은 맞음/틀림, 현재 문항은 굵게
+      const ticks = () => items.map((_, i) => {
+        const r = state.results[i];
+        const cls = r ? (r.ok ? "ok" : "no") : i === state.idx ? "now" : "";
+        return `<li class="${cls}"></li>`;
+      }).join("");
       app.innerHTML = `
-        <section class="section"><div class="wrap flow">
-          <div class="progress">
-            <span>${n} / ${total}</span>
-            <div class="progress-bar"><span style="width:${((n - 1) / total) * 100}%"></span></div>
+        <section class="section"><div class="wrap flow quiz">
+          <div class="quiz-top">
+            <p class="quiz-no"><b>${pad(n)}</b> / ${pad(total)}</p>
+            <ol class="ticks" aria-hidden="true">${ticks()}</ol>
           </div>
           ${adCard(q.ad)}
           <p class="question">${esc(q.question)}</p>
-          <div class="options">
-            ${q.options.map((o, i) => `<button class="option" data-i="${i}">${esc(o.text)}</button>`).join("")}
+          <div class="qopts">
+            ${q.options.map((o, i) => `
+              <button class="qopt" data-i="${i}">
+                <span class="k">${keys[i]}</span><span class="t">${esc(o.text)}</span><span class="v"></span>
+              </button>`).join("")}
           </div>
-          <div class="feedback-slot"></div>
+          <div class="feedback-slot" aria-live="polite"></div>
         </div></section>`;
 
       // 답을 고른 뒤의 화면(정답 표시 + 해설). 처음 고를 때와, 다른 페이지에서 돌아와 복원할 때 함께 쓴다
       const showAnswer = (picked) => {
         const ok = q.options[picked].correct;
-        app.querySelectorAll(".option").forEach((b, i) => {
+        const answer = q.options.findIndex((o) => o.correct);
+        app.querySelectorAll(".qopt").forEach((b, i) => {
           b.disabled = true;
-          if (q.options[i].correct) b.classList.add("correct");
-          else if (i === picked) b.classList.add("wrong");
-          else b.classList.add("dim");
+          const v = b.querySelector(".v");
+          if (i === answer) { b.classList.add("is-answer"); v.textContent = i === picked ? "정답 · 내 선택" : "정답"; }
+          else if (i === picked) { b.classList.add("is-wrong"); v.textContent = "내 선택"; }
+          else b.classList.add("is-dim");
         });
-        app.querySelector(".progress-bar span").style.width = `${(n / total) * 100}%`;
+        app.querySelector(".ticks").innerHTML = ticks();
         app.querySelector(".feedback-slot").innerHTML = `
-          <div class="feedback ${ok ? "ok" : "no"}">
-            <h4>${ok ? "정답입니다" : "다시 생각해 볼까요?"}</h4>
+          <div class="qexp ${ok ? "ok" : "no"}">
+            <p class="verdict">${ok ? "맞혔습니다." : `틀렸습니다. 정답은 ${keys[answer]}입니다.`}</p>
             <p>${esc(q.explain)}</p>
             ${q.signal ? signalTag(q.signal) : ""}
           </div>
-          <div class="nav-row"><span></span>
+          <div class="btn-row qnext">
             <button class="btn btn-primary" data-next>${n === total ? "결과 보기" : "다음 문제"} →</button>
           </div>`;
         app.querySelector("[data-next]").addEventListener("click", next);
@@ -556,15 +696,15 @@
       if (prev) {
         showAnswer(prev.picked);
         // 라우터가 맨 위로 올린 다음에 실행되도록 한 프레임 미룸
-        requestAnimationFrame(() => app.querySelector(".feedback").scrollIntoView({ block: "center", behavior: "instant" }));
+        requestAnimationFrame(() => app.querySelector(".qexp").scrollIntoView({ block: "center", behavior: "instant" }));
         return;
       }
 
-      app.querySelectorAll(".option").forEach((btn) => btn.addEventListener("click", () => {
+      app.querySelectorAll(".qopt").forEach((btn) => btn.addEventListener("click", () => {
         const picked = +btn.dataset.i;
         state.results[state.idx] = { q, ok: q.options[picked].correct, picked };
         showAnswer(picked);
-        app.querySelector(".feedback").scrollIntoView({ block: "nearest", behavior: "smooth" });
+        app.querySelector(".qexp").scrollIntoView({ block: "nearest", behavior: "smooth" });
       }));
     };
 
