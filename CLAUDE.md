@@ -37,6 +37,8 @@
 - 설문 결과 → content.js `axes`의 consumer `survey`
 - config.js: 설문 링크, 모둠원 이름(공개 동의 후), GoatCounter
 - 확인 필요: 퀴즈 미세플라스틱 금지 연도(2017), 적발 '건수' 단위 원출처
+- 확인 필요: cases.js `lg-kimchi` 과징금 - 언론(2019.5.28) 5,000만 원 vs 공정위 의결서 2019-128 주문 7,400만 원. 확정 전까지 금액 미표기
+- 사례 8건 (11/9). cases.js에 선택 필드 `country`(태그에 "해외(프랑스)"), `outcome.label`(배지 글자 덮어쓰기, 예: JDP "자율심의") 추가
 - [x] checklist.js `report.channels` KEITI 신고 링크 → 에코스퀘어 '부당한 환경성 표시·광고 신고' 직접 링크로 교체 (PC·모바일 열림 확인 2026-11-09, 메뉴 경로 `path` 병기). 공정위·국민신문고는 아직 메인 주소
   - toolkit 항목에 `links: [{label, url, path}]` 추가. 에코스퀘어 인증제품현황은 직접 링크가 없어 메인 주소 + 메뉴 경로로 안내
 - 배포. 일정: 웹앱 완성·배포 11/9-16 주차, 태성고 특강 11/27(학생 휴대폰 접속), 경기도서관 12/5, 최종 발표 12/14
@@ -67,12 +69,22 @@
   - 그린워싱/정상 문구를 번갈아 표시 (app.js `alternator`, 같은 종류·같은 문구 연속 없음)
   - 문구 칸 높이: 기본 1줄, ≤359px만 2줄. 실측(Pretendard) 24자 문구는 330px 미만에서만 줄바꿈, 360px에서 칸의 86%, 데스크톱 70% (1줄에 들어감)
 - [x] 사진 채우기 (11/9): 히어로·둘러보기 4장·세 관점 3장 = Pexels 사진, 1600px/q80로 줄여 docs/img/에 둠. 원본은 사진자료/ (배포 대상 아님)
-  - 남은 것: 정의 옆 실제 라벨 사진(김형서 촬영). 예비 사진 img/spare-leather.jpg (패션 '에코 레더' 사례용 후보, 미사용)
+  - 정의 옆 그림 (11/9): 사진 대신 가상 제품 라벨 SVG (app.js `labelArt()`, 데이터 content.js `definition.label`). 주방세제 병 + 문구 4개(slot badge/hero/line1/line2)에 원칙 번호 원·점선 연결, 옆에 원칙별 설명 목록(알아보기 원칙 링크). ≤480px은 그림 위·목록 아래
+    - 재활용 마크 사진(img/label-battery.jpg, label-earphone.jpg)은 개념 전달이 약해 폐기 - 파일만 남아 있음(미사용)
+    - 실존 브랜드 사진은 "그린워싱 아님" 병기로 대신하지 않고 블러/제외 (Unsplash·Pexels 라이선스가 상표 사용권 미포함)
+  - 예비 사진 img/spare-leather.jpg (패션 '에코 레더' 사례용 후보, 미사용)
   - photo에 `pos` 항목 추가 (object-position). 히어로 원본의 실제 브랜드 배너는 잘라냄 - 실존 브랜드가 보이는 사진은 쓰지 말 것
 - [x] 홈 히어로 사진 고정 + 스크롤 페이드 (11/9): `.hero-bg`는 position: fixed(배경만 고정, 글자·섹션은 스크롤). app.js `heroFade()`
   - 사진과 히어로 글자(`.hero-content`)를 같은 비율로 옅게: 1(맨 위) → 0(01 섹션 마지막 질문 '누가 확인했나요?' 아래 끝이 화면에 들어온 순간), 선형. 0이면 visibility hidden
   - 01 섹션(`.ask-sec`)은 불투명 밝은 바탕으로 사진 위를 덮으며 올라옴. 처음엔 글자색 전환(50% 기준) 방식이었으나 중간 단계 대비가 어색해서 폐기
   - 고정 사진 위로 그리기 위해 `.hero-full ~ section`에 z-index 1. scroll/resize 리스너는 onLeave로 해제
+- [x] 원칙 아이콘 (11/9): `docs/js/icons.js` (`window.GW_ICONS`, 원칙 id 키, 24×24·선 1.5·currentColor, 채움은 class="f"). app.js `picon(id, size)`
+  - 그림: ①고무 도장+× ②잎+? ③1/4 채운 원 ④돋보기+작은 점 ⑤체크 메달 ⑥문서+가림 띠 ⑦어긋난 퍼즐 ⑧폴더+∅
+  - 화면에서 원칙 번호(①-⑧)는 전부 빼고 아이콘 + 이름만 표시 (11/9 결정). 아이콘은 aria-hidden(이름이 글자로 같이 나오므로)
+    - 예외: 원칙 상세의 근거(basis) "고시 원칙 ②" 같은 법령 인용, AI 검토 프롬프트 글(복사용 텍스트)은 번호 유지. content.js `no` 필드도 유지(프롬프트용)
+    - 정의 라벨 SVG의 번호 원 → 원 안에 아이콘
+  - 적용: 홈 04 격자(32), 알아보기 원칙 목록(48, ≤640px 36), 정의 라벨 설명 목록(22), signalTag(14 - 사례·퀴즈 해설), 판독기 문항 태그(14), 판독기 결과 목록(18, 위험도 색)
+  - content.js signals의 옛 `icon` 기호 필드 삭제
 - 레이아웃: icebergdoc.org 참고 - 번호 섹션(01.) + 큰 타이포 + 사진 카드. app.js `numberer()`, `photo()` 헬퍼
 - 홈: 섹션마다 배치를 다르게 (반복 금지). 히어로 full-bleed 사진+오버레이 → 01 좌우 분할 → 02 큰 카드+썸네일 목록 → 03 진한 녹색 반전(full-bleed) → 04 원칙 4×2 격자. 컨테이너 1280px
 - 참고: SHIUI(shi-ui.vercel.app)의 무그림자·1.5px 선·3색 체계를 CSS로만 차용, 레퍼런스는 minimal.gallery Environmental/Editorial/Non-profit
