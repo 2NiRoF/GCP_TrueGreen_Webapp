@@ -290,6 +290,8 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 
 .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
 .step { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 6px; align-content: start; }
+.step-link { margin: 0; }
+.step-link a { font-weight: 600; }
 .step::before { counter-increment: step; content: counter(step, decimal-leading-zero); font-size: 2rem; font-weight: 600; color: var(--accent); line-height: 1; }
 .reg { display: grid; grid-template-columns: 260px 1fr; gap: 6px 24px; padding: 16px 0; border-bottom: 1px solid var(--line); }
 .reg:first-child { padding-top: 0; }
@@ -333,7 +335,8 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 .option.correct { border-color: var(--risk-low); background: var(--risk-low-soft); }
 .option.wrong { border-color: var(--risk-high); background: var(--risk-high-soft); }
 .option.dim { opacity: .55; }
-.option.selected { border-color: var(--accent); background: var(--accent-soft); }
+.option.selected, .option[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
 .feedback { margin-top: 16px; border-radius: var(--radius); padding: 18px; animation: rise .25s ease; }
 .feedback.ok { background: var(--risk-low-soft); }
 .feedback.no { background: var(--risk-high-soft); }
@@ -356,9 +359,25 @@ a.photo-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; 
 .sub-head { margin-top: 36px; font-size: 1.15rem; }
 
 /* 판독기 */
-.check-answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.check-answers .option { text-align: center; }
-@media (max-width: 420px) { .check-answers { grid-template-columns: 1fr; } }
+/* 판독기: 한 페이지 3문항, 선으로 구분 */
+.check-q { border-top: 1px solid var(--line); padding: 18px 0; }
+.check-q:last-child { border-bottom: 1px solid var(--line); }
+.check-q-head { display: flex; align-items: center; gap: 10px; margin: 0; }
+.check-q-no { font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.check-q .question { font-size: 1.05rem; margin: 8px 0 12px; }
+.check-left { margin: 14px 0 0; min-height: 1.4em; }
+.check-left + .nav-row { margin-top: 8px; }
+/* 답 버튼은 휴대폰에서도 한 줄 3개 */
+.check-answers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.check-answers .option { text-align: center; padding: 11px 6px; white-space: nowrap; }
+/* 320px대 작은 휴대폰: '잘 모르겠음'이 넘치지 않게 글자를 줄이고, 한 페이지가 2화면 안에 들도록 간격을 줄임 */
+@media (max-width: 340px) {
+  .check-answers { gap: 6px; }
+  .check-answers .option { font-size: .82rem; padding-inline: 2px; min-height: 46px; }
+  .section:has(.check-page) { padding-top: 24px; }
+  .check-q { padding: 14px 0; }
+  .check-q .question { font-size: 1rem; margin: 6px 0 10px; }
+}
 .level-low  { --lv: var(--risk-low);  --lv-soft: var(--risk-low-soft); }
 .level-mid  { --lv: var(--risk-mid);  --lv-soft: var(--risk-mid-soft); }
 .level-high { --lv: var(--risk-high); --lv-soft: var(--risk-high-soft); }

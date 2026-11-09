@@ -164,7 +164,8 @@
     view(param);
     const titles = { learn: "알아보기", cases: "사례", quiz: "퀴즈", check: "판독기", about: "소개" };
     document.title = titles[name] ? `${titles[name]} · ${CFG.siteName}` : CFG.siteName;
-    if (!param) window.scrollTo(0, 0);
+    // 페이지 전환은 즉시 맨 위로 (CSS의 smooth를 따르면 애니메이션이 남아, 화면이 정한 스크롤 위치를 덮어씀 - 예: 퀴즈 해설 복원)
+    if (!param) window.scrollTo({ top: 0, behavior: "instant" });
     app.focus({ preventScroll: true });
     analytics.page();
   }
@@ -332,7 +333,7 @@
                       <p>${esc(s.desc)}</p>
                       <div class="example bad"><b>이런 표현은 의심</b>${esc(s.bad)}</div>
                       <div class="example good"><b>이렇게 쓰면 확인 가능</b>${esc(s.good)}</div>
-                      ${s.fashion ? `<div class="example fashion"><b>패션 광고에서는</b>${esc(s.fashion)}</div>` : ""}
+                      ${s.fashion ? `<div class="example fashion"><b>ex) 패션 광고에서는</b>${esc(s.fashion)}</div>` : ""}
                       <p class="basis">법적 유형: ${esc(s.legal)}<br>근거: ${esc(s.basis)}</p>
                     </div>
                   </details>
@@ -390,7 +391,8 @@
         <div class="wrap">
           ${head("직접 확인하는 방법")}
           <ol class="steps">
-            ${C.toolkit.map((t) => `<li class="step"><h3>${esc(t.title)}</h3><p class="muted small">${esc(t.body)}</p></li>`).join("")}
+            ${C.toolkit.map((t) => `<li class="step"><h3>${esc(t.title)}</h3><p class="muted small">${esc(t.body)}</p>${(t.links || []).map((l) => `
+              <p class="step-link small"><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>${l.path ? `<br><span class="muted">${esc(l.path)}</span>` : ""}</p>`).join("")}</li>`).join("")}
           </ol>
         </div>
       </section>
@@ -480,14 +482,14 @@
     return shuffled([...fixed, ...rest.slice(0, n - fixed.length)]);
   }
 
-  function viewQuiz() {
-    let items = [];
-    const state = { idx: -1, results: [] };
+  // 퀴즈 진행 상태는 viewQuiz 밖(모듈 수준)에 둔다.
+  // 해설의 원칙 링크(#/learn/...)나 메뉴로 나갔다가 #/quiz로 돌아오면 이어서 진행. 새로 고침하면 초기화.
+  // { items: 출제 문항, idx: 현재 번호(0부터), results: [{ q, ok, picked }], done: 결과 화면 도달 여부 }
+  let quizState = null;
 
+  function viewQuiz() {
     const start = () => {
-      items = drawQuestions();
-      state.idx = -1;
-      state.results = [];
+      quizState = { items: drawQuestions(), idx: -1, results: [], done: false };
       next();
     };
 
@@ -496,7 +498,7 @@
         <section class="section"><div class="wrap flow">
           <div class="result-hero">
                         <h1>이 광고, 믿어도 될까?</h1>
-            <p>가상의 광고 ${QUIZ.pool.length}개 중 ${Math.min(QUIZ.drawCount, QUIZ.pool.length)}개가 무작위로 나옵니다. 모든 광고가 그린워싱은 아닙니다. 근거가 잘 갖춰진 광고도 섞여 있습니다.</p>
+            <p>가상의 광고 ${QUIZ.pool.length}개 중 ${Math.min(QUIZ.drawCount, QUIZ.pool.length)}개가 무작위로 나옵니다. 모든 광고가 그린워싱은 아닙니다. 근거가 잘 갖춰진 광고도 섞여 있습니다. 퀴즈 속 브랜드는 모두 가상입니다.</p>
             <div class="btn-row"><button class="btn btn-primary" data-start>시작하기</button></div>
           </div>
         </div></section>`;
@@ -504,13 +506,14 @@
     };
 
     const next = () => {
-      state.idx++;
-      if (state.idx >= items.length) return result();
-      question(items[state.idx]);
+      quizState.idx++;
+      if (quizState.idx >= quizState.items.length) return result();
+      question(quizState.items[quizState.idx]);
       window.scrollTo(0, 0);
     };
 
     const question = (q) => {
+      const state = quizState, items = state.items;
       const n = state.idx + 1, total = items.length;
       app.innerHTML = `
         <section class="section"><div class="wrap flow">
@@ -526,13 +529,13 @@
           <div class="feedback-slot"></div>
         </div></section>`;
 
-      app.querySelectorAll(".option").forEach((btn) => btn.addEventListener("click", () => {
-        const ok = q.options[+btn.dataset.i].correct;
-        state.results.push({ q, ok });
+      // 답을 고른 뒤의 화면(정답 표시 + 해설). 처음 고를 때와, 다른 페이지에서 돌아와 복원할 때 함께 쓴다
+      const showAnswer = (picked) => {
+        const ok = q.options[picked].correct;
         app.querySelectorAll(".option").forEach((b, i) => {
           b.disabled = true;
           if (q.options[i].correct) b.classList.add("correct");
-          else if (b === btn) b.classList.add("wrong");
+          else if (i === picked) b.classList.add("wrong");
           else b.classList.add("dim");
         });
         app.querySelector(".progress-bar span").style.width = `${(n / total) * 100}%`;
@@ -546,17 +549,34 @@
             <button class="btn btn-primary" data-next>${n === total ? "결과 보기" : "다음 문제"} →</button>
           </div>`;
         app.querySelector("[data-next]").addEventListener("click", next);
+      };
+
+      // 이미 답한 문항이면(링크로 나갔다 돌아온 경우) 해설까지 펼친 상태로 복원
+      const prev = state.results[state.idx];
+      if (prev) {
+        showAnswer(prev.picked);
+        // 라우터가 맨 위로 올린 다음에 실행되도록 한 프레임 미룸
+        requestAnimationFrame(() => app.querySelector(".feedback").scrollIntoView({ block: "center", behavior: "instant" }));
+        return;
+      }
+
+      app.querySelectorAll(".option").forEach((btn) => btn.addEventListener("click", () => {
+        const picked = +btn.dataset.i;
+        state.results[state.idx] = { q, ok: q.options[picked].correct, picked };
+        showAnswer(picked);
         app.querySelector(".feedback").scrollIntoView({ block: "nearest", behavior: "smooth" });
       }));
     };
 
     const result = () => {
+      const state = quizState;
       const score = state.results.filter((r) => r.ok).length;
-      const total = items.length;
+      const total = state.items.length;
       // 결과 문구는 10문항 기준 점수 구간이므로 문항 수가 달라져도 비율로 환산
       const scaled = Math.round((score / total) * 10);
       const r = QUIZ.results.find((x) => scaled >= x.min) || QUIZ.results[QUIZ.results.length - 1];
-      analytics.event("quiz-complete");
+      if (!state.done) analytics.event("quiz-complete"); // 결과 화면으로 돌아올 때는 다시 집계하지 않음
+      state.done = true;
       app.innerHTML = `
         <section class="section"><div class="wrap flow">
           <div class="result-hero">
@@ -589,14 +609,24 @@
       window.scrollTo(0, 0);
     };
 
-    intro();
+    // 진행 중이던 퀴즈가 있으면 이어서, 없으면 시작 화면
+    if (!quizState) intro();
+    else if (quizState.done) result();
+    else question(quizState.items[quizState.idx]);
   }
 
   // ---------- 판독기 ----------
+  // 판독기 진행 상태도 퀴즈처럼 viewCheck 밖(모듈 수준)에 둔다. 다른 페이지 다녀와도 유지, 새로 고침하면 초기화.
+  // { answers: 문항별로 고른 answer key(안 고르면 null), page: 현재 페이지(0부터), done: 결과 화면 도달, counted: 통계 집계 여부 }
+  // 결과 화면의 입력칸(제품명, 광고 문구)은 여기에 저장하지 않는다.
+  let checkState = null;
+  const CHECK_PER_PAGE = 3; // 한 페이지 문항 수. 휴대폰에서 한 페이지가 2화면을 넘지 않도록 3개
+
   function viewCheck() {
     const qs = CHECK.questions;
-    const answers = new Array(qs.length).fill(null); // 각 문항에 고른 answer key
-    let idx = -1;
+    const pages = Math.ceil(qs.length / CHECK_PER_PAGE);
+    const fresh = () => ({ answers: new Array(qs.length).fill(null), page: 0, done: false, counted: false });
+    const restart = () => { checkState = fresh(); showPage(); };
 
     const intro = () => {
       app.innerHTML = `
@@ -607,40 +637,97 @@
             <div class="btn-row"><button class="btn btn-primary" data-start>판독 시작 (${qs.length}문항)</button></div>
           </div>
         </div></section>`;
-      app.querySelector("[data-start]").addEventListener("click", () => go(0));
+      app.querySelector("[data-start]").addEventListener("click", restart);
     };
 
-    const go = (i) => {
-      idx = i;
-      if (idx >= qs.length) return result();
-      const q = qs[idx];
-      const s = signalById[q.signal];
+    // 한 페이지에 CHECK_PER_PAGE개 문항. 모두 답해야 '다음'이 활성화되고, '이전'으로 돌아가 답을 바꿀 수 있다
+    const showPage = () => {
+      const st = checkState;
+      const from = st.page * CHECK_PER_PAGE;
+      const idxs = qs.slice(from, from + CHECK_PER_PAGE).map((_, k) => from + k);
+      const last = st.page === pages - 1;
       app.innerHTML = `
         <section class="section"><div class="wrap flow">
           <div class="progress">
-            <span>${idx + 1} / ${qs.length}</span>
-            <div class="progress-bar"><span style="width:${(idx / qs.length) * 100}%"></span></div>
+            <span>${st.page + 1} / ${pages}</span>
+            <div class="progress-bar"><span></span></div>
           </div>
-          <div class="card">
-            ${s ? `<span class="tag">원칙 ${esc(s.no)} ${esc(s.principle)}</span>` : ""}
-            <p class="question">${esc(q.text)}</p>
-            <div class="check-answers">
-              ${CHECK.answers.map((a) => `<button class="option ${answers[idx] === a.key ? "selected" : ""}" data-key="${a.key}">${esc(a.label)}</button>`).join("")}
-            </div>
+          <div class="check-page">
+            ${idxs.map((i) => {
+              const q = qs[i], s = signalById[q.signal];
+              const sel = st.answers[i];
+              return `
+              <div class="check-q">
+                <p class="check-q-head"><span class="check-q-no">${i + 1}</span>${s ? `<span class="tag">원칙 ${esc(s.no)} ${esc(s.principle)}</span>` : ""}</p>
+                <p class="question" id="cq-${i}">${esc(q.text)}</p>
+                <div class="check-answers" role="radiogroup" aria-labelledby="cq-${i}" data-q="${i}">
+                  ${CHECK.answers.map((a, k) => `<button type="button" class="option" role="radio" data-key="${a.key}"
+                    aria-checked="${sel === a.key}" tabindex="${sel ? (sel === a.key ? 0 : -1) : (k === 0 ? 0 : -1)}">${esc(a.label)}</button>`).join("")}
+                </div>
+              </div>`;
+            }).join("")}
           </div>
+          <p class="check-left small muted" aria-live="polite"></p>
           <div class="nav-row">
-            <button class="btn btn-ghost" data-back ${idx === 0 ? "disabled style=\"visibility:hidden\"" : ""}>← 이전</button>
+            ${st.page > 0 ? `<button type="button" class="btn btn-ghost" data-back>이전</button>` : "<span></span>"}
+            <button type="button" class="btn btn-primary" data-next>${last ? "결과 보기" : "다음"} →</button>
           </div>
         </div></section>`;
-      app.querySelectorAll("[data-key]").forEach((b) => b.addEventListener("click", () => {
-        answers[idx] = b.dataset.key;
-        b.classList.add("selected");
-        setTimeout(() => go(idx + 1), 160); // 선택 표시를 잠깐 보여준 뒤 다음 문항
-      }));
-      app.querySelector("[data-back]").addEventListener("click", () => go(idx - 1));
+
+      const nextBtn = app.querySelector("[data-next]");
+      const unanswered = () => idxs.filter((i) => !st.answers[i]);
+      const update = () => {
+        const left = unanswered().length;
+        nextBtn.setAttribute("aria-disabled", String(left > 0));
+        app.querySelector(".check-left").textContent = left ? `남은 문항 ${left}개` : "";
+        // 진행 바는 페이지 단위: 이 페이지를 다 답하면 한 칸 채움
+        app.querySelector(".progress-bar span").style.width = `${((st.page + (left ? 0 : 1)) / pages) * 100}%`;
+      };
+
+      app.querySelectorAll(".check-answers").forEach((group) => {
+        const i = +group.dataset.q;
+        const radios = [...group.querySelectorAll("[role=radio]")];
+        const choose = (b) => {
+          st.answers[i] = b.dataset.key;
+          radios.forEach((r) => { r.setAttribute("aria-checked", String(r === b)); r.tabIndex = r === b ? 0 : -1; });
+          update();
+        };
+        radios.forEach((b, k) => {
+          b.addEventListener("click", () => choose(b));
+          // 라디오 그룹 키보드 조작: 화살표로 이동하며 선택
+          b.addEventListener("keydown", (e) => {
+            const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+            if (!step) return;
+            e.preventDefault();
+            const to = radios[(k + step + radios.length) % radios.length];
+            to.focus();
+            choose(to);
+          });
+        });
+      });
+
+      nextBtn.addEventListener("click", () => {
+        const left = unanswered();
+        if (left.length) {
+          // 비활성 상태에서 누르면 아직 안 고른 첫 문항으로 안내
+          const g = app.querySelector(`.check-answers[data-q="${left[0]}"]`);
+          g.scrollIntoView({ block: "center", behavior: "instant" });
+          g.querySelector("[tabindex='0']").focus({ preventScroll: true });
+          return;
+        }
+        if (last) { st.done = true; return result(); }
+        st.page++;
+        showPage();
+      });
+      const back = app.querySelector("[data-back]");
+      if (back) back.addEventListener("click", () => { st.page--; showPage(); });
+
+      update();
+      window.scrollTo({ top: 0, behavior: "instant" });
     };
 
     const result = () => {
+      const answers = checkState.answers;
       // 점수 = Σ(weight × factor) / Σweight × 100
       const factor = Object.fromEntries(CHECK.answers.map((a) => [a.key, a.factor]));
       const max = qs.reduce((sum, q) => sum + q.weight, 0);
@@ -651,7 +738,8 @@
         .map((q, i) => ({ q, f: factor[answers[i]] || 0 }))
         .filter((x) => x.f > 0)
         .sort((a, b) => b.q.weight * b.f - a.q.weight * a.f);
-      analytics.event("check-complete-" + level.key);
+      if (!checkState.counted) analytics.event("check-complete-" + level.key); // 돌아와서 다시 볼 때는 집계 안 함
+      checkState.counted = true;
 
       // 결과 화면 하단: 근거 요청 문구 / 신고 안내 / AI 검토 프롬프트 (문구는 checklist.js)
       const RQ = CHECK.request, RP = CHECK.report, AI = CHECK.aiPrompt;
@@ -669,7 +757,7 @@
             <div class="meter" aria-hidden="true"><span></span></div>
             <p>${esc(level.body)}</p>
             <div class="btn-row">
-              <button class="btn btn-primary" data-retry>다른 광고 판독하기</button>
+              <button class="btn btn-primary" data-retry>다시 하기</button>
               <button class="btn btn-ghost" data-share>결과 공유</button>
             </div>
           </div>
@@ -708,6 +796,7 @@
                   <p><strong>${esc(c.who)}</strong>${c.law ? ` <span class="small muted">${esc(c.law)}</span>` : ""}</p>
                   <p class="small muted">${esc(c.what)}</p>
                   <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.urlLabel)} ↗</a>
+                  ${c.path ? `<p class="small muted">${esc(c.path)}</p>` : ""}
                 </li>`).join("")}
             </ul>
             <h4 class="minor">${esc(RP.prepareTitle)}</h4>
@@ -761,13 +850,16 @@
       requestAnimationFrame(() => requestAnimationFrame(() => {
         app.querySelector(".meter span").style.width = `${pct}%`;
       }));
-      app.querySelector("[data-retry]").addEventListener("click", () => viewCheck());
+      app.querySelector("[data-retry]").addEventListener("click", restart); // 1페이지 빈 상태로
       app.querySelector("[data-share]").addEventListener("click", () =>
         share(`그린워싱 판독기로 광고를 확인해 봤어요: 위험도 ${pct}점 (${level.label})`));
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: "instant" });
     };
 
-    intro();
+    // 진행 중이던 판독이 있으면 이어서, 없으면 시작 화면
+    if (!checkState) intro();
+    else if (checkState.done) result();
+    else showPage();
   }
 
   // ---------- 소개 ----------

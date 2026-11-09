@@ -90,7 +90,9 @@ window.GW_CHECKLIST = {
         url: "https://www.ftc.go.kr", urlLabel: "공정거래위원회 홈페이지" },
       { who: "기후에너지환경부 · 한국환경산업기술원", law: "환경기술산업법 제16조의10",
         what: "제품의 환경성(친환경)에 관한 부당한 표시·광고",
-        url: "https://www.keiti.re.kr", urlLabel: "한국환경산업기술원 홈페이지" },
+        // 에코스퀘어 신고센터 직접 링크 (PC·모바일 열림 확인 2026-11). path는 링크가 안 열릴 때를 위한 메뉴 경로 안내
+        url: "https://ecosq.or.kr/websquare.do#w2xPath=/ui/eco/gi/oe/GIOE180M01.xml&valVl=tab1&menuSn=30060320", urlLabel: "부당한 환경성 표시·광고 신고센터",
+        path: "에코스퀘어 > 친환경녹색진흥 > 환경성 표시·광고 > 부당한 환경성 표시·광고 신고" },
       { who: "국민신문고", law: "",
         what: "어느 기관인지 모르겠다면 국민신문고에 민원을 넣으면 담당 기관으로 전달됩니다.",
         url: "https://www.epeople.go.kr", urlLabel: "국민신문고" }
