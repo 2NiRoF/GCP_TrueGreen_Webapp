@@ -23,9 +23,14 @@
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
   ));
   const signalById = Object.fromEntries(C.signals.map((s) => [s.id, s]));
+  // 원칙 아이콘 (js/icons.js). 번호를 대신하지 않고 옆에 붙는 보조 그림이라 aria-hidden
+  const ICONS = window.GW_ICONS || {};
+  const picon = (id, size = 16, cls = "") => ICONS[id]
+    ? `<svg class="pi ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[id]}</svg>`
+    : "";
   const signalTag = (id) => {
     const s = signalById[id];
-    return s ? `<a class="tag" href="#/learn/${s.id}">${esc(s.no)} ${esc(s.title)}</a>` : "";
+    return s ? `<a class="tag" href="#/learn/${s.id}">${picon(s.id, 14)}${esc(s.title)}</a>` : "";
   };
 
   let toastTimer;
@@ -102,6 +107,42 @@
         : `<div class="photo-slot" aria-hidden="true">${esc(p.hint || "사진")}</div>`}
       ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ""}
     </figure>`;
+
+  // 가상 제품 라벨 그림 (알아보기 정의 옆). 글자·원칙은 content.js definition.label
+  // 위치는 slot으로 고정: badge(도장) / hero(큰 글자) / line1·line2. 번호 원은 오른쪽, 점선으로 연결
+  const labelArt = (L) => {
+    const by = Object.fromEntries(L.claims.map((c) => [c.slot, c]));
+    const mark = (c, x1, y1, cy) => c && signalById[c.signal] ? `
+      <line class="la-lead" x1="${x1}" y1="${y1}" x2="250" y2="${cy}"/>
+      <circle class="la-no" cx="264" cy="${cy}" r="14"/>
+      <svg class="pi la-no-i" x="255" y="${cy - 9}" width="18" height="18" viewBox="0 0 24 24">${ICONS[c.signal] || ""}</svg>` : "";
+    const badge = by.badge ? by.badge.text.split("\n") : [];
+    const desc = L.claims.map((c) => `${c.text.replace("\n", " ")}(${signalById[c.signal]?.title || ""})`).join(", ");
+    return `
+      <svg class="label-art" viewBox="0 0 300 360" role="img" aria-label="가상 ${esc(L.product)} 라벨: ${esc(desc)}">
+        <rect class="la-cap" x="118" y="8" width="44" height="30" rx="4"/>
+        <rect class="la-neck" x="126" y="38" width="28" height="16"/>
+        <path class="la-body" d="M56 86 Q56 54 96 54 L184 54 Q224 54 224 86 L224 330 Q224 352 202 352 L78 352 Q56 352 56 330 Z"/>
+        <rect class="la-paper" x="66" y="104" width="136" height="220" rx="4"/>
+        <text class="la-brand" x="134" y="130">${esc(L.brand)} · ${esc(L.product)}</text>
+        <path class="la-leaf" d="M134 142 C110 152 110 182 134 194 C158 182 158 152 134 142 Z"/>
+        <path class="la-vein" d="M134 150 L134 188"/>
+        ${by.hero ? `<text class="la-hero" x="134" y="234">${esc(by.hero.text)}</text>` : ""}
+        <line class="la-rule" x1="80" y1="250" x2="188" y2="250"/>
+        ${by.line1 ? `<text class="la-line" x="134" y="273">${esc(by.line1.text)}</text>` : ""}
+        ${by.line2 ? `<text class="la-line" x="134" y="297">${esc(by.line2.text)}</text>` : ""}
+        <text class="la-vol" x="134" y="316">${esc(L.volume || "")}</text>
+        ${by.badge ? `
+          <circle class="la-badge" cx="212" cy="96" r="27"/>
+          <circle class="la-badge-in" cx="212" cy="96" r="22"/>
+          <text class="la-badge-t" x="212" y="${badge.length > 1 ? 93 : 100}">${esc(badge[0])}</text>
+          ${badge[1] ? `<text class="la-badge-t" x="212" y="107">${esc(badge[1])}</text>` : ""}` : ""}
+        ${mark(by.badge, 238, 88, 62)}
+        ${mark(by.hero, 206, 222, 200)}
+        ${mark(by.line1, 206, 268, 258)}
+        ${mark(by.line2, 206, 292, 300)}
+      </svg>`;
+  };
 
   // 번호 섹션 머리 (01. 제목 / 설명). 페이지마다 numberer()로 번호를 새로 셉니다.
   const numberer = () => {
@@ -281,7 +322,7 @@
           <ol class="p-grid">
             ${C.signals.map((s) => `
               <li><a href="#/learn/${s.id}">
-                <span class="no">${esc(s.no)}</span>
+                <span class="no">${picon(s.id, 32)}</span>
                 <strong>${esc(s.title)}</strong>
                 <span class="pr">${esc(s.principle)}</span>
               </a></li>`).join("")}
@@ -346,7 +387,18 @@
               <p class="muted">${esc(C.definition.law)}</p>
               <p class="note">${esc(C.definition.note)}</p>
             </div>
-            ${photo(C.definition.photo)}
+            ${C.definition.label
+              ? `<figure class="def-label">
+                  <div class="def-label-art">${labelArt(C.definition.label)}</div>
+                  <ol class="def-label-notes">
+                    ${C.definition.label.claims.filter((c) => signalById[c.signal]).map((c) => {
+                      const s = signalById[c.signal];
+                      return `<li><span class="no" aria-hidden="true">${picon(s.id, 22)}</span><div><a href="#/learn/${s.id}"><strong>${esc(s.title)}</strong></a><p>${esc(c.note)}</p></div></li>`;
+                    }).join("")}
+                  </ol>
+                  ${C.definition.label.caption ? `<figcaption>${esc(C.definition.label.caption)}</figcaption>` : ""}
+                </figure>`
+              : photo(C.definition.photo)}
           </div>
         </div>
       </section>
@@ -367,9 +419,9 @@
           <ol class="principles">
             ${C.signals.map((s) => `
               <li class="principle" id="sig-${s.id}">
-                <span class="p-no" aria-hidden="true">${esc(s.no)}</span>
+                <span class="p-no" aria-hidden="true">${picon(s.id, 48)}</span>
                 <div class="p-body">
-                  <h3>${esc(s.title)} <span class="p-name">원칙 ${esc(s.no)} ${esc(s.principle)}</span></h3>
+                  <h3>${esc(s.title)} <span class="p-name">${esc(s.principle)}</span></h3>
                   <p class="short">${esc(s.short)}</p>
                   <details ${s.id === focusId ? "open" : ""}>
                     <summary>자세히 보기</summary>
@@ -493,8 +545,8 @@
       list.innerHTML = items.map((c) => `
         <article class="card case">
           <div class="case-top">
-            <span class="tag">${esc(c.region)} · ${esc(c.industry)} · ${c.year}</span>
-            <span class="badge ${esc(c.outcome.type)}">${outcomeLabel[c.outcome.type] || ""}</span>
+            <span class="tag">${esc(c.region)}${c.country ? `(${esc(c.country)})` : ""} · ${esc(c.industry)} · ${c.year}</span>
+            <span class="badge ${esc(c.outcome.type)}">${esc(c.outcome.label || outcomeLabel[c.outcome.type] || "")}</span>
           </div>
           <div>
             <h3>${esc(c.company)}</h3>
@@ -798,7 +850,7 @@
               const sel = st.answers[i];
               return `
               <div class="check-q">
-                <p class="check-q-head"><span class="check-q-no">${i + 1}</span>${s ? `<span class="tag">원칙 ${esc(s.no)} ${esc(s.principle)}</span>` : ""}</p>
+                <p class="check-q-head"><span class="check-q-no">${i + 1}</span>${s ? `<span class="tag">${picon(s.id, 14)}${esc(s.title)}</span>` : ""}</p>
                 <p class="question" id="cq-${i}">${esc(q.text)}</p>
                 <div class="check-answers" role="radiogroup" aria-labelledby="cq-${i}" data-q="${i}">
                   ${CHECK.answers.map((a, k) => `<button type="button" class="option" role="radio" data-key="${a.key}"
@@ -908,7 +960,7 @@
               ${flagged.map(({ q, f }) => {
                 const s = signalById[q.signal];
                 return `<div class="flag ${f < 1 ? "half" : ""}">
-                  <p class="t">${esc(s.no)} ${esc(s.title)} ${f < 1 ? '<span class="small muted">(정보 부족)</span>' : ""}</p>
+                  <p class="t">${picon(s.id, 18)}${esc(s.title)} ${f < 1 ? '<span class="small muted">(정보 부족)</span>' : ""}</p>
                   <p class="d">${esc(q.text)}</p>
                   <p class="d"><a href="#/learn/${s.id}">이 원칙 자세히 보기</a></p>
                 </div>`;
