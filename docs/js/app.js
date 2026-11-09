@@ -98,7 +98,7 @@
   const photo = (p = {}, cls = "") => `
     <figure class="photo ${cls}">
       ${p.src
-        ? `<img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy">`
+        ? `<img src="${esc(p.src)}" alt="${esc(p.alt)}"${p.pos ? ` style="object-position:${esc(p.pos)}"` : ""} loading="lazy">`
         : `<div class="photo-slot" aria-hidden="true">${esc(p.hint || "사진")}</div>`}
       ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ""}
     </figure>`;

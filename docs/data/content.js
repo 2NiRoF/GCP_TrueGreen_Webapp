@@ -18,7 +18,8 @@
  *   - 사진 파일을 docs/img/ 폴더에 넣고 src에 경로를 적으세요. 예: src: "img/label-01.jpg"
  *   - src가 비어 있으면 화면에 hint 글자가 적힌 빈 사진 자리가 보입니다.
  *   - alt: 사진을 볼 수 없는 사람을 위한 설명 / caption: 사진 아래 작은 설명 (선택)
- *   - 가로 사진 기준(4:3)으로 잘려 보입니다. 홈 맨 위 사진(heroPhoto)은 화면 크기에 맞게 잘립니다.
+ *   - 가로 사진 기준(4:3)으로 잘려 보입니다. 중요한 부분이 잘리면 pos로 보이는 위치를 정하세요. 예: pos: "center 70%" (가로 세로, 0%=위/왼쪽)
+ *   - 현재 사진은 Pexels 무료 사진(출처 표기 의무 없음). 원본은 사진자료/ 폴더 홈 맨 위 사진(heroPhoto)은 화면 크기에 맞게 잘립니다.
  */
 window.GW_CONTENT = {
   // 홈 화면
@@ -26,7 +27,7 @@ window.GW_CONTENT = {
     title: "그 ‘친환경’,",
     titleEm: "누가 확인했나요?",
     // 맨 위 화면 가득 채우는 사진 1장 (가로로 넓은 사진 권장, 글자가 위에 올라가므로 어두운 편이 좋음)
-    heroPhoto: { src: "", alt: "", hint: "대표 사진 · 친환경 문구가 붙은 진열대" },
+    heroPhoto: { src: "img/hero-shelf.jpg", alt: "마트 냉장 진열대에 음료와 유제품이 빼곡히 놓여 있다", hint: "대표 사진 · 친환경 문구가 붙은 진열대" },
     questions: [
       { q: "무엇이?", a: "제품 전체인가요, 포장이나 원료 하나인가요?" },
       { q: "얼마나?", a: "숫자와 비교 기준이 있나요?" },
@@ -34,10 +35,10 @@ window.GW_CONTENT = {
     ],
     // 메뉴 사진 카드. id는 바꾸지 마세요 (페이지 주소와 연결)
     features: [
-      { id: "learn", title: "알아보기", desc: "법령이 정한 8대 원칙과 소비·기업·환경 관점의 설명", photo: { src: "", alt: "", hint: "알아보기 사진" } },
-      { id: "cases", title: "실제 사례", desc: "공정위 제재 등 국내외 실제 사례와 판단이 갈린 사례", photo: { src: "", alt: "", hint: "사례 사진" } },
-      { id: "quiz", title: "판단 퀴즈", desc: "가상의 광고를 보고 그린워싱인지 직접 판단해 보기", photo: { src: "", alt: "", hint: "퀴즈 사진" } },
-      { id: "check", title: "판독기", desc: "실제 제품·광고에 체크리스트를 적용해 위험도 확인", photo: { src: "", alt: "", hint: "판독기 사진" } }
+      { id: "learn", title: "알아보기", desc: "법령이 정한 8대 원칙과 소비·기업·환경 관점의 설명", photo: { src: "img/learn-eco-goods.jpg", alt: "나무 탁자 위에 대나무 칫솔, 그물 장바구니, 유리병 같은 생활용품이 놓여 있다", hint: "알아보기 사진" } },
+      { id: "cases", title: "실제 사례", desc: "공정위 제재 등 국내외 실제 사례와 판단이 갈린 사례", photo: { src: "img/cases-clothing-store.jpg", alt: "옷가게 선반과 행거에 색색의 티셔츠가 걸려 있다", hint: "사례 사진" } },
+      { id: "quiz", title: "판단 퀴즈", desc: "가상의 광고를 보고 그린워싱인지 직접 판단해 보기", photo: { src: "img/quiz-green-envelope.jpg", alt: "GREEN이라고 적힌 봉투에 초록 잎이 꽂혀 있다", pos: "center 85%", hint: "퀴즈 사진" } },
+      { id: "check", title: "판독기", desc: "실제 제품·광고에 체크리스트를 적용해 위험도 확인", photo: { src: "img/check-recycle-bins.jpg", alt: "종이·플라스틱·금속·유리 분리수거 라벨이 붙은 투명 상자가 쌓여 있다", hint: "판독기 사진" } }
     ]
   },
 
@@ -185,7 +186,7 @@ window.GW_CONTENT = {
   axes: [
     {
       id: "consumer",
-      photo: { src: "", alt: "", hint: "소비 관점 사진" },
+      photo: { src: "img/axis-consumer-aisle.jpg", alt: "마트 통로 양쪽 선반에 통조림과 식품이 가득 진열되어 있다", hint: "소비 관점 사진" },
       label: "소비",
       title: "왜 우리는 쉽게 속을까?",
       points: [
@@ -199,7 +200,7 @@ window.GW_CONTENT = {
     },
     {
       id: "company",
-      photo: { src: "", alt: "", hint: "기업 관점 사진" },
+      photo: { src: "img/axis-company-factory.jpg", alt: "파란 하늘 아래 공장 설비와 굴뚝", hint: "기업 관점 사진" },
       label: "기업",
       title: "진짜 친환경과 그린워싱은 무엇이 다를까?",
       points: [
@@ -211,7 +212,7 @@ window.GW_CONTENT = {
     },
     {
       id: "environment",
-      photo: { src: "", alt: "", hint: "환경 관점 사진" },
+      photo: { src: "img/axis-environment-clothes.jpg", alt: "버려진 옷들이 뒤엉켜 쌓여 있다", hint: "환경 관점 사진" },
       label: "환경",
       title: "그린워싱이 환경에 왜 문제일까?",
       points: [

@@ -49,7 +49,9 @@
 - [x] 진행 바 그라데이션 제거, 파랑(--sky)은 배경 톤에만
 - [x] "→" 화살표는 다음/결과 버튼에만
 - [x] (추가) 결과 화면 좌측 정렬·큰 숫자, 8대 원칙 카드 → 번호 목록
-- [ ] 사진 채우기: content.js의 `photo.src` (홈 히어로 1장, 둘러보기 4장, 정의 옆 실제 라벨 사진(김형서), 세 관점 3장). 파일은 docs/img/
+- [x] 사진 채우기 (11/9): 히어로·둘러보기 4장·세 관점 3장 = Pexels 사진, 1600px/q80로 줄여 docs/img/에 둠. 원본은 사진자료/ (배포 대상 아님)
+  - 남은 것: 정의 옆 실제 라벨 사진(김형서 촬영). 예비 사진 img/spare-leather.jpg (패션 '에코 레더' 사례용 후보, 미사용)
+  - photo에 `pos` 항목 추가 (object-position). 히어로 원본의 실제 브랜드 배너는 잘라냄 - 실존 브랜드가 보이는 사진은 쓰지 말 것
 - 레이아웃: icebergdoc.org 참고 - 번호 섹션(01.) + 큰 타이포 + 사진 카드. app.js `numberer()`, `photo()` 헬퍼
 - 홈: 섹션마다 배치를 다르게 (반복 금지). 히어로 full-bleed 사진+오버레이 → 01 좌우 분할 → 02 큰 카드+썸네일 목록 → 03 진한 녹색 반전(full-bleed) → 04 원칙 4×2 격자. 컨테이너 1280px
 - 참고: SHIUI(shi-ui.vercel.app)의 무그림자·1.5px 선·3색 체계를 CSS로만 차용, 레퍼런스는 minimal.gallery Environmental/Editorial/Non-profit
