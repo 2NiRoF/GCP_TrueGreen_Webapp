@@ -33,13 +33,20 @@ window.GW_CONTENT = {
       { q: "얼마나?", a: "숫자와 비교 기준이 있나요?" },
       { q: "누가 확인했나요?", a: "공식 인증이나 외부 검증이 있나요?" }
     ],
-    // 메뉴 사진 카드. id는 바꾸지 마세요 (페이지 주소와 연결)
+    // 02 '둘러보기' 사진 카드. id는 바꾸지 마세요 (페이지 주소와 연결)
+    // - 첫 번째 항목이 큰 카드, 나머지는 오른쪽 목록에 적힌 순서대로 나옵니다.
+    // - 사이트의 중심은 판독기, 퀴즈는 판독기 전에 해 보는 연습입니다. 순서를 바꿀 때 이 흐름을 지켜 주세요.
     features: [
+      { id: "check", title: "판독기", desc: "지금 보고 있는 실제 제품·광고에 체크리스트를 적용해 그린워싱 위험도와 기업에 물어볼 질문을 받아 보세요.", photo: { src: "img/check-recycle-bins.jpg", alt: "종이·플라스틱·금속·유리 분리수거 라벨이 붙은 투명 상자가 쌓여 있다", hint: "판독기 사진" } },
+      { id: "quiz", title: "연습 퀴즈", desc: "판독기를 쓰기 전에, 가상 광고로 그린워싱 신호를 찾는 연습", photo: { src: "img/quiz-green-envelope.jpg", alt: "GREEN이라고 적힌 봉투에 초록 잎이 꽂혀 있다", pos: "center 85%", hint: "퀴즈 사진" } },
       { id: "learn", title: "알아보기", desc: "법령이 정한 8대 원칙과 소비·기업·환경 관점의 설명", photo: { src: "img/learn-eco-goods.jpg", alt: "나무 탁자 위에 대나무 칫솔, 그물 장바구니, 유리병 같은 생활용품이 놓여 있다", hint: "알아보기 사진" } },
-      { id: "cases", title: "실제 사례", desc: "공정위 제재 등 국내외 실제 사례와 판단이 갈린 사례", photo: { src: "img/cases-clothing-store.jpg", alt: "옷가게 선반과 행거에 색색의 티셔츠가 걸려 있다", hint: "사례 사진" } },
-      { id: "quiz", title: "판단 퀴즈", desc: "가상의 광고를 보고 그린워싱인지 직접 판단해 보기", photo: { src: "img/quiz-green-envelope.jpg", alt: "GREEN이라고 적힌 봉투에 초록 잎이 꽂혀 있다", pos: "center 85%", hint: "퀴즈 사진" } },
-      { id: "check", title: "판독기", desc: "실제 제품·광고에 체크리스트를 적용해 위험도 확인", photo: { src: "img/check-recycle-bins.jpg", alt: "종이·플라스틱·금속·유리 분리수거 라벨이 붙은 투명 상자가 쌓여 있다", hint: "판독기 사진" } }
-    ]
+      { id: "cases", title: "실제 사례", desc: "공정위 제재 등 국내외 실제 사례와 판단이 갈린 사례", photo: { src: "img/cases-clothing-store.jpg", alt: "옷가게 선반과 행거에 색색의 티셔츠가 걸려 있다", hint: "사례 사진" } }
+    ],
+    // 홈 맨 아래 마무리 (원칙 격자 다음): 한 줄 문장 + 판독기 버튼
+    closing: {
+      text: "다음에 ‘친환경’ 광고를 보면, 판독기에 넣어 보세요.",
+      button: "판독기 시작"
+    }
   },
 
   definition: {

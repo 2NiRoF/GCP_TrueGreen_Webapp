@@ -215,7 +215,12 @@
     const [name = "", param] = location.hash.replace(/^#\/?/, "").split("/");
     const view = routes[name] || viewHome;
     if (name !== "learn") fromQuiz = false;
-    document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === name));
+    if (name !== "learn" && name !== "cases") casesReturn = null;
+    document.querySelectorAll(".nav a").forEach((a) => {
+      const on = a.dataset.route === name;
+      a.classList.toggle("active", on);
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
     view(param);
     const titles = { learn: "알아보기", cases: "사례", quiz: "퀴즈", check: "판독기", about: "소개" };
     document.title = titles[name] ? `${titles[name]} · ${CFG.siteName}` : CFG.siteName;
@@ -328,7 +333,15 @@
               </a></li>`).join("")}
           </ol>
         </div>
-      </section>`;
+      </section>
+
+      ${H.closing ? `
+      <section class="closing">
+        <div class="wrap">
+          <p class="closing-line">${esc(H.closing.text)}</p>
+          <a class="btn btn-primary" href="#/check">${esc(H.closing.button)}</a>
+        </div>
+      </section>` : ""}`;
     heroFade();
   }
 
@@ -377,10 +390,34 @@
   // ---------- 알아보기 ----------
   function viewLearn(focusId) {
     const head = numberer();
+    // 섹션 순서 = 화면 순서 = 바로가기 칩 순서. chip: 칩 글자(짧게)
+    // fold 섹션(7가지 죄악·세 관점·규제 기관)은 휴대폰(≤640px)에서 기본 접힘 - CSS .fold, 버튼은 휴대폰에서만 보임
+    const SECS = [
+      { id: "l-def", chip: "정의" },
+      { id: "l-signals", chip: "8대 원칙" },
+      { id: "l-status", chip: "현황" },
+      { id: "l-legal", chip: "법적 유형" },
+      { id: "l-sins", chip: "7가지 죄악" },
+      { id: "l-axes", chip: "세 관점" },
+      { id: "l-toolkit", chip: "확인 방법" },
+      { id: "l-reg", chip: "규제 기관" }
+    ];
+    const foldBody = (id, count, body) => `
+      <button type="button" class="fold-btn" data-fold aria-expanded="false" aria-controls="${id}-body" data-count="${count}">펼쳐 보기 (${count}개)</button>
+      <div class="fold-body" id="${id}-body">${body}</div>`;
     app.innerHTML = `
-      <section class="page-head">
+      <section class="page-head learn-title">
+        <div class="wrap"><h1>${esc(C.definition.title)}</h1></div>
+      </section>
+
+      <nav class="subnav" aria-label="알아보기 섹션 바로가기">
+        <div class="wrap"><div class="subnav-chips">
+          ${SECS.map((x) => `<button type="button" class="chip" data-to="${x.id}">${esc(x.chip)}</button>`).join("")}
+        </div></div>
+      </nav>
+
+      <section class="learn-def" id="l-def" tabindex="-1">
         <div class="wrap">
-          <h1>${esc(C.definition.title)}</h1>
           <div class="def">
             <div class="stack">
               <p class="lead">${esc(C.definition.body)}</p>
@@ -403,17 +440,7 @@
         </div>
       </section>
 
-      <section class="sec">
-        <div class="wrap">
-          ${head("현황과 실태")}
-          <div class="grid grid-2" style="gap:40px;align-items:start">
-            ${detectionChart()}
-            ${figures()}
-          </div>
-        </div>
-      </section>
-
-      <section class="sec" id="signals">
+      <section class="sec" id="l-signals" tabindex="-1">
         <div class="wrap">
           ${head("친환경 광고가 지켜야 할 8대 원칙", "「환경성 표시·광고 관리제도에 관한 고시」의 8가지 원칙을 소비자가 광고를 볼 때 확인할 질문으로 옮겼습니다.")}
           <ol class="principles">
@@ -439,7 +466,17 @@
         </div>
       </section>
 
-      <section class="sec">
+      <section class="sec" id="l-status" tabindex="-1">
+        <div class="wrap">
+          ${head("현황과 실태")}
+          <div class="grid grid-2" style="gap:40px;align-items:start">
+            ${detectionChart()}
+            ${figures()}
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="l-legal" tabindex="-1">
         <div class="wrap">
           ${head("법적으로는 어떻게 문제가 될까?", "원칙을 어긴 광고는 법적으로 아래 네 가지 유형으로 다뤄집니다.")}
           <div class="table-wrap">
@@ -448,12 +485,22 @@
               <tbody>${C.legalTypes.map((t) => `<tr><th scope="row">${esc(t.name)}</th><td>${esc(t.core)}</td><td class="muted">${esc(t.example)}</td></tr>`).join("")}</tbody>
             </table>
           </div>
+          <!-- 휴대폰(≤640px): 표 대신 유형별 세로 나열 (같은 내용, CSS로 하나만 보임) -->
+          <dl class="legal-list">
+            ${C.legalTypes.map((t) => `
+              <div>
+                <dt>${esc(t.name)}</dt>
+                <dd><span class="ll-k">핵심</span>${esc(t.core)}</dd>
+                <dd class="muted"><span class="ll-k">대표적인 모습</span>${esc(t.example)}</dd>
+              </div>`).join("")}
+          </dl>
         </div>
       </section>
 
-      <section class="sec">
+      <section class="sec fold" id="l-sins" tabindex="-1">
         <div class="wrap">
           ${head("그린워싱의 7가지 죄악", "캐나다 환경마케팅 기업 TerraChoice가 정리한 국제적으로 널리 쓰이는 분류입니다. 8대 원칙과 이렇게 연결됩니다.")}
+          ${foldBody("l-sins", C.sins.length, `
           <ul class="sins">
             ${C.sins.map((x) => `
               <li class="sin">
@@ -461,13 +508,14 @@
                 <p class="small muted">${esc(x.desc)}</p>
                 <div class="tags">${x.signals.map(signalTag).join("")}</div>
               </li>`).join("")}
-          </ul>
+          </ul>`)}
         </div>
       </section>
 
-      <section class="sec">
+      <section class="sec fold" id="l-axes" tabindex="-1">
         <div class="wrap">
           ${head("세 가지 관점으로 보기")}
+          ${foldBody("l-axes", C.axes.length, `
           <div class="photo-cards">
             ${C.axes.map((a) => `
               <article class="photo-card axis-card">
@@ -479,11 +527,11 @@
                   <h4 class="minor">우리 모둠 설문 결과</h4>
                   <div class="stats">${a.survey.map((s) => `<div class="stat"><div class="v">${esc(s.value)}</div><div class="small muted">${esc(s.label)}</div></div>`).join("")}</div>` : ""}
               </article>`).join("")}
-          </div>
+          </div>`)}
         </div>
       </section>
 
-      <section class="sec">
+      <section class="sec" id="l-toolkit" tabindex="-1">
         <div class="wrap">
           ${head("직접 확인하는 방법")}
           <ol class="steps">
@@ -493,14 +541,63 @@
         </div>
       </section>
 
-      <section class="sec">
+      <section class="sec fold" id="l-reg" tabindex="-1">
         <div class="wrap">
           ${head("누가 규제하고 있나요?")}
+          ${foldBody("l-reg", C.regulation.length, `
           <div>
             ${C.regulation.map((r) => `<div class="reg"><strong>${esc(r.who)}</strong><p class="muted small">${esc(r.what)}</p></div>`).join("")}
-          </div>
+          </div>`)}
         </div>
       </section>`;
+
+    // 접힌 섹션 펼치기/접기 (휴대폰에서만 버튼이 보임. 데스크톱은 CSS로 항상 펼침)
+    const setFold = (sec, open) => {
+      sec.classList.toggle("is-open", open);
+      const btn = sec.querySelector("[data-fold]");
+      btn.setAttribute("aria-expanded", String(open));
+      btn.textContent = open ? "접기" : `펼쳐 보기 (${btn.dataset.count}개)`;
+    };
+    app.querySelectorAll("[data-fold]").forEach((b) => b.addEventListener("click", () => {
+      const sec = b.closest(".fold");
+      setFold(sec, !sec.classList.contains("is-open"));
+    }));
+
+    // 섹션 바로가기 칩: 누르면 그 섹션으로 (접힌 섹션은 펼침), 스크롤하면 지금 보고 있는 섹션을 표시
+    const chips = [...app.querySelectorAll(".chip")];
+    const strip = app.querySelector(".subnav-chips");
+    const subnav = app.querySelector(".subnav");
+    const secEls = SECS.map((x) => document.getElementById(x.id));
+    chips.forEach((c) => c.addEventListener("click", () => {
+      const sec = document.getElementById(c.dataset.to);
+      if (sec.classList.contains("fold")) setFold(sec, true);
+      sec.scrollIntoView({ block: "start" }); // html의 scroll-padding-top이 헤더 + 칩 줄 높이만큼 띄움
+      sec.focus({ preventScroll: true });
+    }));
+    let current = -1, ticking = false;
+    const markCurrent = () => {
+      ticking = false;
+      const line = subnav.getBoundingClientRect().bottom + 32; // 칩 줄 바로 아래 기준선
+      let i = 0;
+      secEls.forEach((el, k) => { if (el.getBoundingClientRect().top <= line) i = k; });
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) i = secEls.length - 1; // 맨 아래
+      if (i === current) return;
+      current = i;
+      chips.forEach((c, k) => {
+        c.classList.toggle("is-current", k === i);
+        if (k === i) c.setAttribute("aria-current", "location"); else c.removeAttribute("aria-current");
+      });
+      // 가로 스크롤 줄에서 현재 칩이 가려져 있으면 보이게
+      const c = chips[i];
+      if (c.offsetLeft < strip.scrollLeft || c.offsetLeft + c.offsetWidth > strip.scrollLeft + strip.clientWidth) {
+        strip.scrollTo({ left: c.offsetLeft - 16, behavior: "smooth" });
+      }
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(markCurrent); } };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onLeave(() => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); });
+    markCurrent();
 
     // 퀴즈 해설·결과에서 왔으면 화면 아래에 '퀴즈로 돌아가기' 고정 바 (진행 상태는 quizState에 남아 있어 그대로 이어짐)
     if (fromQuiz && quizState) {
@@ -513,6 +610,14 @@
         </div></div>`);
     }
 
+    // 원칙 항목: 제목 행 어디를 눌러도 펼치기/접기 (summary·링크·펼친 내용 안 클릭, 글자 드래그 선택은 제외)
+    app.querySelector(".principles").addEventListener("click", (e) => {
+      if (e.target.closest("summary, a, button, .detail")) return;
+      if (String(window.getSelection())) return;
+      const d = e.target.closest(".principle")?.querySelector("details");
+      if (d) d.open = !d.open;
+    });
+
     // #/learn/<signal> 로 들어오면 해당 원칙으로 이동
     if (focusId && signalById[focusId]) {
       const el = document.getElementById(`sig-${focusId}`);
@@ -524,6 +629,10 @@
   }
 
   // ---------- 사례 ----------
+  // 카드의 원칙 태그(#/learn/...)로 알아보기에 갔다가 돌아오면 보던 위치·필터·펼친 카드를 복원
+  // { y: 스크롤 위치, region: 필터, open: 펼친 카드 id 목록 }. 사례·알아보기 외의 페이지로 가면 버림 (라우터)
+  let casesReturn = null;
+
   function viewCases() {
     const outcomeLabel = { sanction: "제재", guidance: "행정지도", cleared: "무혐의", court: "판결" };
     const regions = ["전체", ...new Set(CASES.map((c) => c.region))];
@@ -531,19 +640,28 @@
       <section class="section">
         <div class="wrap">
           <div class="section-head">
-                        <h1>실제로 문제가 된 광고들</h1>
+            <h1>실제로 문제가 된 광고들</h1>
             <p>기관의 공식 판단이 있었던 사례만 모았습니다. 판단이 엇갈린 사례도 있습니다.</p>
           </div>
-          <div class="filters">${regions.map((r, i) => `<button class="tab" aria-selected="${i === 0}" data-region="${esc(r)}">${esc(r)}</button>`).join("")}</div>
-          <div class="grid grid-2 case-list"></div>
+          <div class="filter-row">
+            <div class="filters">${regions.map((r, i) => `<button class="tab" aria-selected="${i === 0}" data-region="${esc(r)}">${esc(r)}</button>`).join("")}</div>
+            <p class="filter-count" aria-live="polite"></p>
+          </div>
+          <div class="case-list"></div>
         </div>
       </section>`;
 
+    // 카드 기본: 태그·배지, 기업명, 주장(한 줄), 교훈. '자세히'를 펼치면 주장 전체 + 문제점, 결과, 원칙 태그, 출처
     const list = app.querySelector(".case-list");
-    const render = (region) => {
-      const items = CASES.filter((c) => region === "전체" || c.region === region).sort((a, b) => b.year - a.year);
+    const count = app.querySelector(".filter-count");
+    let region = "전체";
+    const render = (r, open = []) => {
+      region = r;
+      app.querySelectorAll("[data-region]").forEach((x) => x.setAttribute("aria-selected", x.dataset.region === r));
+      const items = CASES.filter((c) => r === "전체" || c.region === r).sort((a, b) => b.year - a.year);
+      count.textContent = `${items.length}건`;
       list.innerHTML = items.map((c) => `
-        <article class="card case">
+        <article class="card case" data-id="${esc(c.id)}">
           <div class="case-top">
             <span class="tag">${esc(c.region)}${c.country ? `(${esc(c.country)})` : ""} · ${esc(c.industry)} · ${c.year}</span>
             <span class="badge ${esc(c.outcome.type)}">${esc(c.outcome.label || outcomeLabel[c.outcome.type] || "")}</span>
@@ -552,21 +670,41 @@
             <h3>${esc(c.company)}</h3>
             <p class="brands">${esc(c.brands)}</p>
           </div>
-          <dl>
-            <div><dt>무엇을 주장했나</dt><dd>${esc(c.claim)}</dd></div>
-            <div><dt>무엇이 문제였나</dt><dd>${esc(c.problem)}</dd></div>
-          </dl>
-          <div class="outcome ${esc(c.outcome.type)}">${esc(c.outcome.text)}</div>
+          <dl class="claim"><dt>무엇을 주장했나</dt><dd>${c.short
+            ? `<span class="claim-short">${esc(c.short)}</span><span class="claim-full">${esc(c.claim)}</span>` // 접힘: short만, 펼침: claim만 (CSS)
+            : `<span class="claim-clamp">${esc(c.claim)}</span>`}</dd></dl>
           <p class="takeaway">${esc(c.takeaway)}</p>
-          <div class="tags">${c.signals.map(signalTag).join("")}</div>
-          <p class="sources">출처: ${c.sources.map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`).join(" · ")}</p>
+          <details class="case-more" ${open.includes(c.id) ? "open" : ""}>
+            <summary>자세히</summary>
+            <div class="case-detail">
+              <dl><div><dt>무엇이 문제였나</dt><dd>${esc(c.problem)}</dd></div></dl>
+              <div class="outcome ${esc(c.outcome.type)}">${esc(c.outcome.text)}</div>
+              <div class="tags">${c.signals.map(signalTag).join("")}</div>
+              <p class="sources">출처: ${c.sources.map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`).join(" · ")}</p>
+            </div>
+          </details>
         </article>`).join("");
     };
-    app.querySelectorAll("[data-region]").forEach((b) => b.addEventListener("click", () => {
-      app.querySelectorAll("[data-region]").forEach((x) => x.setAttribute("aria-selected", x === b));
-      render(b.dataset.region);
-    }));
-    render("전체");
+    app.querySelectorAll("[data-region]").forEach((b) => b.addEventListener("click", () => render(b.dataset.region)));
+    // 원칙 태그 클릭 → 돌아올 위치 기억
+    list.addEventListener("click", (e) => {
+      if (!e.target.closest('a[href^="#/learn"]')) return;
+      casesReturn = {
+        y: window.scrollY,
+        region,
+        open: [...list.querySelectorAll(".case-more[open]")].map((d) => d.closest(".case").dataset.id)
+      };
+    });
+
+    if (casesReturn) {
+      const back = casesReturn;
+      casesReturn = null;
+      render(regions.includes(back.region) ? back.region : "전체", back.open);
+      // 라우터가 맨 위로 올린 뒤에 복원
+      requestAnimationFrame(() => window.scrollTo({ top: back.y, behavior: "instant" }));
+    } else {
+      render("전체");
+    }
   }
 
   // ---------- 퀴즈 ----------
@@ -590,7 +728,8 @@
   }
 
   // 퀴즈 진행 상태는 viewQuiz 밖(모듈 수준)에 둔다.
-  // 해설의 원칙 링크(#/learn/...)나 메뉴로 나갔다가 #/quiz로 돌아오면 이어서 진행. 새로 고침하면 초기화.
+  // 해설의 원칙 링크(#/learn/...)나 메뉴로 나갔다가 #/quiz로 돌아오면 이어서 진행.
+  // 새로 고침·탭 재로드에도 이어지도록 sessionStorage에 저장 (아래 '진행 상태 저장' 참고. 탭을 닫으면 사라짐)
   // { items: 출제 문항, idx: 현재 번호(0부터), results: [{ q, ok, picked }], done: 결과 화면 도달 여부 }
   let quizState = null;
 
@@ -641,7 +780,7 @@
     const start = () => {
       stopRotate();
       quizState = { items: drawQuestions(), idx: -1, results: [], done: false };
-      next();
+      next(); // next()에서 저장 → 이전 저장분은 새 문제로 덮어씀
     };
 
     const intro = () => {
@@ -686,6 +825,7 @@
 
     const next = () => {
       quizState.idx++;
+      saveQuiz();
       if (quizState.idx >= quizState.items.length) return result();
       question(quizState.items[quizState.idx]);
       window.scrollTo(0, 0);
@@ -755,6 +895,7 @@
       app.querySelectorAll(".qopt").forEach((btn) => btn.addEventListener("click", () => {
         const picked = +btn.dataset.i;
         state.results[state.idx] = { q, ok: q.options[picked].correct, picked };
+        saveQuiz();
         showAnswer(picked);
         app.querySelector(".qexp").scrollIntoView({ block: "nearest", behavior: "smooth" });
       }));
@@ -767,16 +908,38 @@
       // 결과 문구는 10문항 기준 점수 구간이므로 문항 수가 달라져도 비율로 환산
       const scaled = Math.round((score / total) * 10);
       const r = QUIZ.results.find((x) => scaled >= x.min) || QUIZ.results[QUIZ.results.length - 1];
-      if (!state.done) analytics.event("quiz-complete"); // 결과 화면으로 돌아올 때는 다시 집계하지 않음
+      if (!state.done) analytics.event("quiz-complete"); // 결과 화면으로 돌아올 때(새로 고침 포함)는 다시 집계하지 않음
       state.done = true;
+      saveQuiz();
+      // 틀린 문항을 원칙별로 셈 (많이 놓친 순, 같으면 먼저 나온 순). 정상 광고(signal 없음)를 틀린 횟수는 따로
+      const RU = QUIZ.resultUi || {};
+      const missed = [];
+      let missedGood = 0;
+      state.results.filter((x) => !x.ok).forEach(({ q }) => {
+        if (!q.signal || !signalById[q.signal]) { missedGood++; return; }
+        const m = missed.find((y) => y.id === q.signal);
+        if (m) m.n++; else missed.push({ id: q.signal, n: 1 });
+      });
+      missed.sort((a, b) => b.n - a.n);
+      const missedHtml = missed.length || missedGood ? `
+        <div class="missed">
+          <h3>${esc(RU.missedTitle || "")}</h3>
+          <ul>
+            ${missed.map((m) => `<li>${picon(m.id, 18)}<span>${esc(fill(RU.missed, { 원칙: signalById[m.id].title, n: m.n }))}
+              <a href="#/learn/${m.id}">${esc(RU.principleLink)}</a></span></li>`).join("")}
+            ${missedGood ? `<li><span class="pi-gap" aria-hidden="true"></span><span>${esc(fill(RU.missedGood, { n: missedGood }))}</span></li>` : ""}
+          </ul>
+        </div>` : "";
       app.innerHTML = `
         <section class="section"><div class="wrap flow">
           <div class="result-hero">
                         <p class="score">${score}<small>/ ${total}</small></p>
             <h2>${esc(r.title)}</h2>
             <p>${esc(r.body)}</p>
+            ${missedHtml}
             <div class="btn-row">
-              <button class="btn btn-primary" data-retry>새 문제로 다시 풀기</button>
+              <a class="btn btn-primary" href="#/check">${esc(RU.checkButton)}</a>
+              <button class="btn btn-ghost" data-retry>새 문제로 다시 풀기</button>
               <button class="btn btn-ghost" data-share>결과 공유</button>
               ${surveyButton("general", "설문 참여하기")}
             </div>
@@ -790,9 +953,6 @@
                   ${!ok && q.signal ? `<div style="margin-top:6px">${signalTag(q.signal)}</div>` : ""}
                 </div>
               </div>`).join("")}
-          </div>
-          <div class="btn-row" style="margin-top:24px">
-            <a class="btn btn-ghost" href="#/check">실제 광고에 판독기 써보기</a>
           </div>
         </div></section>`;
       app.querySelector("[data-retry]").addEventListener("click", start);
@@ -808,8 +968,9 @@
   }
 
   // ---------- 판독기 ----------
-  // 판독기 진행 상태도 퀴즈처럼 viewCheck 밖(모듈 수준)에 둔다. 다른 페이지 다녀와도 유지, 새로 고침하면 초기화.
-  // { answers: 문항별로 고른 answer key(안 고르면 null), page: 현재 페이지(0부터), done: 결과 화면 도달, counted: 통계 집계 여부 }
+  // 판독기 진행 상태도 퀴즈처럼 viewCheck 밖(모듈 수준)에 둔다. 다른 페이지 다녀와도, 새로 고침해도 유지 (sessionStorage).
+  // { answers: 문항별로 고른 answer key(안 고르면 null), page: 현재 페이지(0부터), done: 결과 화면 도달, counted: 통계 집계 여부,
+  //   sample: 예시 광고 모드면 quiz.js pool 문항의 ad 객체(+ id), 내 광고 모드면 null }
   // 결과 화면의 입력칸(제품명, 광고 문구)은 여기에 저장하지 않는다.
   let checkState = null;
   const CHECK_PER_PAGE = 3; // 한 페이지 문항 수. 휴대폰에서 한 페이지가 2화면을 넘지 않도록 3개
@@ -817,24 +978,57 @@
   function viewCheck() {
     const qs = CHECK.questions;
     const pages = Math.ceil(qs.length / CHECK_PER_PAGE);
-    const fresh = () => ({ answers: new Array(qs.length).fill(null), page: 0, done: false, counted: false });
-    const restart = () => { checkState = fresh(); showPage(); };
+    const SM = CHECK.sample || {};
+    const fresh = (sample) => ({ answers: new Array(qs.length).fill(null), page: 0, done: false, counted: false, sample: sample || null });
+    // 다시 하기: 같은 모드·같은 예시 광고로 1페이지 빈 상태부터
+    const restart = () => { checkState = fresh(checkState && checkState.sample); showPage(); };
+    // 예시 광고: quiz.js의 그린워싱 문항(signal 있음) 중 무작위 1개. 직전 광고는 가능하면 피함
+    const pickSample = (prevId) => {
+      const all = QUIZ.pool.filter((q) => q.signal && q.ad);
+      const pool = all.length > 1 ? all.filter((q) => q.id !== prevId) : all;
+      const q = pool[Math.floor(Math.random() * pool.length)];
+      return q ? { id: q.id, ...q.ad } : null;
+    };
+    const startMine = () => { checkState = fresh(null); showPage(); };
+    const startSample = () => {
+      checkState = fresh(pickSample(checkState && checkState.sample && checkState.sample.id));
+      analytics.event("check-start-sample");
+      showPage();
+    };
+    // 예시 광고 카드 (문항 화면·결과 화면 공통)
+    const sampleBlock = (label, extraClass) => {
+      const ad = checkState && checkState.sample;
+      return ad ? `<div class="check-ad ${extraClass || ""}"><p class="check-ad-label">${esc(label || "")}</p>${adCard(ad)}</div>` : "";
+    };
 
     const intro = () => {
+      const I = CHECK.intro || {};
+      const vals = { 문항: qs.length };
       app.innerHTML = `
-        <section class="section"><div class="wrap flow">
-          <div class="result-hero">
-                        <h1>이 광고의 그린워싱 위험도는?</h1>
-            <p>${esc(CHECK.intro)}</p>
-            <div class="btn-row"><button class="btn btn-primary" data-start>판독 시작 (${qs.length}문항)</button></div>
+        <section class="section qi-sec"><div class="wrap qi">
+          <h1 class="ci-title">${esc(I.title || "")}</h1>
+          ${I.lead ? `<p class="qi-lead">${esc(I.lead)}</p>` : ""}
+          ${(I.fields || []).length ? `
+          <dl class="qi-fields">
+            ${I.fields.map((f) => `
+              <div class="qi-field">
+                <dt>${esc(f.label)}</dt>
+                <dd><b>${esc(fill(f.value || "", vals))}</b>${f.note ? `<span>${esc(fill(f.note, vals))}</span>` : ""}</dd>
+              </div>`).join("")}
+          </dl>` : ""}
+          <div class="btn-row qi-start ci-start">
+            <button class="btn btn-primary" data-start-mine>${esc(I.mineButton || "")}</button>
+            <button class="btn btn-ghost" data-start-sample>${esc(I.sampleButton || "")}</button>
           </div>
         </div></section>`;
-      app.querySelector("[data-start]").addEventListener("click", restart);
+      app.querySelector("[data-start-mine]").addEventListener("click", startMine);
+      app.querySelector("[data-start-sample]").addEventListener("click", startSample);
     };
 
     // 한 페이지에 CHECK_PER_PAGE개 문항. 모두 답해야 '다음'이 활성화되고, '이전'으로 돌아가 답을 바꿀 수 있다
     const showPage = () => {
       const st = checkState;
+      saveCheck(); // 시작·다시 하기·페이지 이동 모두 여기를 지남 → 이전 저장분은 덮어씀
       const from = st.page * CHECK_PER_PAGE;
       const idxs = qs.slice(from, from + CHECK_PER_PAGE).map((_, k) => from + k);
       const last = st.page === pages - 1;
@@ -844,6 +1038,7 @@
             <span>${st.page + 1} / ${pages}</span>
             <div class="progress-bar"><span></span></div>
           </div>
+          ${sampleBlock(SM.pageLabel)}
           <div class="check-page">
             ${idxs.map((i) => {
               const q = qs[i], s = signalById[q.signal];
@@ -854,7 +1049,7 @@
                 <p class="question" id="cq-${i}">${esc(q.text)}</p>
                 <div class="check-answers" role="radiogroup" aria-labelledby="cq-${i}" data-q="${i}">
                   ${CHECK.answers.map((a, k) => `<button type="button" class="option" role="radio" data-key="${a.key}"
-                    aria-checked="${sel === a.key}" tabindex="${sel ? (sel === a.key ? 0 : -1) : (k === 0 ? 0 : -1)}">${esc(a.label)}</button>`).join("")}
+                    aria-checked="${sel === a.key}" tabindex="${sel ? (sel === a.key ? 0 : -1) : (k === 0 ? 0 : -1)}">${esc((q.labels && q.labels[a.key]) || a.label)}</button>`).join("")}
                 </div>
               </div>`;
             }).join("")}
@@ -881,6 +1076,7 @@
         const radios = [...group.querySelectorAll("[role=radio]")];
         const choose = (b) => {
           st.answers[i] = b.dataset.key;
+          saveCheck();
           radios.forEach((r) => { r.setAttribute("aria-checked", String(r === b)); r.tabIndex = r === b ? 0 : -1; });
           update();
         };
@@ -907,7 +1103,7 @@
           g.querySelector("[tabindex='0']").focus({ preventScroll: true });
           return;
         }
-        if (last) { st.done = true; return result(); }
+        if (last) { st.done = true; return result(); } // result()에서 저장
         st.page++;
         showPage();
       });
@@ -930,8 +1126,40 @@
         .map((q, i) => ({ q, f: factor[answers[i]] || 0 }))
         .filter((x) => x.f > 0)
         .sort((a, b) => b.q.weight * b.f - a.q.weight * a.f);
-      if (!checkState.counted) analytics.event("check-complete-" + level.key); // 돌아와서 다시 볼 때는 집계 안 함
+      // 걸린 항목을 원칙별로 묶음 (표시용. 요청 문구·AI 프롬프트는 문항 단위 flagged 그대로)
+      // 원칙 순서 = 묶인 문항의 weight×factor 합 (같으면 기존 순서). 원칙 안 문항은 기존 가중치 순
+      const groups = [];
+      flagged.forEach((x) => {
+        let g = groups.find((y) => y.s.id === x.q.signal);
+        if (!g) groups.push((g = { s: signalById[x.q.signal], items: [], sum: 0 }));
+        g.items.push(x);
+        g.sum += x.q.weight * x.f;
+      });
+      groups.sort((a, b) => b.sum - a.sum); // 안정 정렬
+      const RS = CHECK.result;
+      const topN = RS.top || 3;
+      // 점수 막대 눈금: levels의 min 중 0보다 큰 값 (예: 25, 55)
+      const bounds = CHECK.levels.map((l) => l.min).filter((m) => m > 0).sort((a, b) => a - b);
+      const upper = bounds.find((b) => b > pct);                  // 위 경계 (최고 등급이면 없음)
+      const lower = [...bounds].reverse().find((b) => b <= pct);  // 아래 경계 (최저 등급이면 없음)
+      const meterNote = [
+        fill(RS.meter.range, { 등급: level.label, 시작: level.min, 끝: upper ? upper - 1 : 100 }),
+        upper != null ? fill(RS.meter.up, { 경계: upper, n: upper - pct }) : "",
+        lower != null ? fill(RS.meter.down, { 경계: lower, n: pct - lower }) : ""
+      ].filter(Boolean).join(" · ");
+      const groupHtml = (g) => {
+        const half = g.items.every((x) => x.f < 1); // 원칙의 모든 문항이 '모르겠음'
+        return `<div class="flag ${half ? "half" : ""}">
+          <p class="t">${picon(g.s.id, 18)}${esc(g.s.title)}${half ? ` <span class="small muted">(${esc(RS.infoMissing)})</span>` : ""}</p>
+          <ul class="flag-qs">${g.items.map(({ q, f }) => `<li>${esc(q.text)}${f < 1 && !half ? ` <span class="small muted">(${esc(RS.infoMissing)})</span>` : ""}</li>`).join("")}</ul>
+          <p class="d"><a href="#/learn/${g.s.id}">이 원칙 자세히 보기</a></p>
+        </div>`;
+      };
+      const postSurvey = surveyButton("post", RS.postSurvey.button);
+
+      if (!checkState.counted) analytics.event("check-complete-" + level.key); // 돌아와서 다시 볼 때(새로 고침 포함)는 집계 안 함
       checkState.counted = true;
+      saveCheck();
 
       // 결과 화면 하단: 근거 요청 문구 / 신고 안내 / AI 검토 프롬프트 (문구는 checklist.js)
       const RQ = CHECK.request, RP = CHECK.report, AI = CHECK.aiPrompt;
@@ -943,35 +1171,41 @@
 
       app.innerHTML = `
         <section class="section"><div class="wrap flow level-${level.key}">
+          ${sampleBlock(SM.resultLabel, "check-ad-result")}
           <div class="result-hero">
             <p class="score lv" aria-label="위험도 ${pct}점">${pct}<small>/ 100</small></p>
             <p class="level-label">${esc(level.label)}</p>
-            <div class="meter" aria-hidden="true"><span></span></div>
+            <div class="meter-wrap" aria-hidden="true">
+              <div class="meter"><span></span>${bounds.map((b) => `<i style="left:${b}%"></i>`).join("")}</div>
+              <div class="meter-scale">${[0, ...bounds, 100].map((v) => `<span style="left:${v}%">${v}</span>`).join("")}</div>
+            </div>
+            <p class="meter-note">${esc(meterNote)}</p>
             <p>${esc(level.body)}</p>
+            <div class="jumps">
+              ${["request", "report", "ai"].map((k) => `<button type="button" class="jump" data-jump="${k}">${esc(RS.jumps[k])}</button>`).join("")}
+            </div>
             <div class="btn-row">
               <button class="btn btn-primary" data-retry>다시 하기</button>
+              ${checkState.sample ? `<button class="btn btn-ghost" data-again-sample>${esc(SM.againButton || "")}</button>` : ""}
               <button class="btn btn-ghost" data-share>결과 공유</button>
             </div>
           </div>
 
-          ${flagged.length ? `
-            <h3 class="sub-head">확인이 필요한 부분 (${flagged.length})</h3>
+          ${groups.length ? `
+            <h3 class="sub-head">${esc(RS.flaggedTitle)} <span class="small muted">${esc(fill(RS.flaggedCount, { 원칙: groups.length, 문항: flagged.length }))}</span></h3>
             <div class="flagged">
-              ${flagged.map(({ q, f }) => {
-                const s = signalById[q.signal];
-                return `<div class="flag ${f < 1 ? "half" : ""}">
-                  <p class="t">${picon(s.id, 18)}${esc(s.title)} ${f < 1 ? '<span class="small muted">(정보 부족)</span>' : ""}</p>
-                  <p class="d">${esc(q.text)}</p>
-                  <p class="d"><a href="#/learn/${s.id}">이 원칙 자세히 보기</a></p>
-                </div>`;
-              }).join("")}
-            </div>` : `<p class="muted" style="margin-top:20px">걸린 항목이 없습니다.</p>`}
+              ${groups.slice(0, topN).map(groupHtml).join("")}
+              ${groups.length > topN ? `<div class="flagged flag-rest" id="flag-rest" hidden>${groups.slice(topN).map(groupHtml).join("")}</div>` : ""}
+            </div>
+            ${groups.length > topN ? `<button type="button" class="more-btn" data-more aria-expanded="false" aria-controls="flag-rest">${esc(fill(RS.moreButton, { n: groups.length - topN }))}</button>` : ""}`
+            : `<p class="muted" style="margin-top:20px">걸린 항목이 없습니다.</p>`}
 
-          <section class="act">
-            <h3>${esc(RQ.heading)}</h3>
+          <section class="act" id="act-request">
+            <h3 tabindex="-1">${esc(RQ.heading)}</h3>
             <p class="muted">${esc(RQ.help)}</p>
             <label class="field"><span>${esc(RQ.productLabel)}</span>
-              <input id="rq-product" type="text" placeholder="${esc(RQ.productPlaceholder)}" autocomplete="off">
+              <input id="rq-product" type="text" placeholder="${esc(RQ.productPlaceholder)}" autocomplete="off"
+                value="${checkState.sample ? esc(`${checkState.sample.brand} ${checkState.sample.product}`) : ""}">
             </label>
             ${asks.length ? `
               <pre class="preview" id="rq-preview"></pre>
@@ -979,9 +1213,11 @@
               : `<p class="muted">${esc(RQ.none)}</p>`}
           </section>
 
-          <section class="act">
-            <h3>${esc(RP.heading)}</h3>
+          <section class="act" id="act-report">
+            <h3 tabindex="-1">${esc(RP.heading)}</h3>
             <p class="muted">${esc(RP.help)}</p>
+            <details class="report-more">
+            <summary>${esc(RS.reportToggle)}</summary>
             <ul class="channels">
               ${RP.channels.map((c) => `
                 <li>
@@ -993,10 +1229,11 @@
             </ul>
             <h4 class="minor">${esc(RP.prepareTitle)}</h4>
             <ul class="prepare">${RP.prepare.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+            </details>
           </section>
 
-          <section class="act">
-            <h3>${esc(AI.heading)}</h3>
+          <section class="act" id="act-ai">
+            <h3 tabindex="-1">${esc(AI.heading)}</h3>
             <p class="muted">${esc(AI.help)}</p>
             <label class="field"><span>${esc(AI.adLabel)}</span>
               <textarea id="ai-ad" rows="4" placeholder="${esc(AI.adPlaceholder)}"></textarea>
@@ -1007,6 +1244,13 @@
             </details>
             <div class="btn-row"><button class="btn btn-primary" data-copy-prompt>AI 검토 프롬프트 복사</button></div>
           </section>
+
+          ${postSurvey ? `
+          <section class="act">
+            <h3>${esc(RS.postSurvey.heading)}</h3>
+            <p class="muted">${esc(RS.postSurvey.text)}</p>
+            <div class="btn-row">${postSurvey}</div>
+          </section>` : ""}
 
           <p class="disclaimer">${esc(CHECK.disclaimer)}</p>
         </div></section>`;
@@ -1040,9 +1284,30 @@
       });
 
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        app.querySelector(".meter span").style.width = `${pct}%`;
+        const meter = app.querySelector(".meter span"); // 두 프레임 사이에 다른 화면으로 넘어갔으면 없음
+        if (meter) meter.style.width = `${pct}%`;
+      }));
+      // 나머지 원칙 펼치기/접기 (버튼은 목록 아래에 그대로 있음)
+      const moreBtn = app.querySelector("[data-more]");
+      if (moreBtn) moreBtn.addEventListener("click", () => {
+        const rest = app.querySelector("#flag-rest");
+        const open = rest.hidden;
+        rest.hidden = !open;
+        moreBtn.setAttribute("aria-expanded", String(open));
+        moreBtn.textContent = open ? RS.lessButton : fill(RS.moreButton, { n: groups.length - topN });
+      });
+      // 바로가기: 해당 칸으로 스크롤 + 제목에 포커스. 신고 안내는 접힌 부분도 펼침
+      app.querySelectorAll("[data-jump]").forEach((b) => b.addEventListener("click", () => {
+        const sec = app.querySelector(`#act-${b.dataset.jump}`);
+        const fold = sec.querySelector(".report-more");
+        if (fold) fold.open = true;
+        sec.scrollIntoView({ block: "start" });
+        sec.querySelector("h3").focus({ preventScroll: true });
+        analytics.event("check-jump-" + b.dataset.jump);
       }));
       app.querySelector("[data-retry]").addEventListener("click", restart); // 1페이지 빈 상태로
+      const againSample = app.querySelector("[data-again-sample]");
+      if (againSample) againSample.addEventListener("click", startSample); // 다른 예시 광고로 1페이지부터
       app.querySelector("[data-share]").addEventListener("click", () =>
         share(`그린워싱 판독기로 광고를 확인해 봤어요: 위험도 ${pct}점 (${level.label})`));
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -1095,11 +1360,91 @@
   }
 
   /* ============================================================
+     진행 상태 저장 (sessionStorage)
+     - 휴대폰에서 탭을 바꿨다 오면 페이지가 다시 로드되는 일이 잦아서, 퀴즈·판독기 진행 상태를 탭 단위로 저장
+     - 키에 버전을 넣음: 저장 구조를 바꾸면 STORE_VER를 올려서 옛 저장분을 무시하게 할 것
+     - 저장소를 못 쓰는 환경(사생활 보호 모드 일부 등)이면 조용히 실패하고 메모리로만 동작
+     - 결과 화면의 입력칸(제품명, 광고 문구)은 저장하지 않음
+     ============================================================ */
+  const STORE_VER = "v1";
+  const STORE_KEY = { check: `truegreen:check:${STORE_VER}`, quiz: `truegreen:quiz:${STORE_VER}` };
+  const store = {
+    get(key) {
+      try { const raw = window.sessionStorage.getItem(key); return raw ? JSON.parse(raw) : null; }
+      catch (e) { return null; }
+    },
+    set(key, value) {
+      try {
+        if (value == null) window.sessionStorage.removeItem(key);
+        else window.sessionStorage.setItem(key, JSON.stringify(value));
+      } catch (e) { /* 저장 실패 - 메모리 상태로 계속 */ }
+    }
+  };
+
+  // 판독기: { answers, page, done, counted, sampleId } - 예시 광고는 id만 저장하고 복원 때 quiz.js pool에서 찾음
+  function saveCheck() {
+    const st = checkState;
+    store.set(STORE_KEY.check, st && {
+      answers: st.answers, page: st.page, done: st.done, counted: st.counted,
+      sampleId: st.sample ? st.sample.id : null
+    });
+  }
+  function loadCheck() {
+    const d = store.get(STORE_KEY.check);
+    if (!d) return null;
+    const qs = CHECK.questions, keys = CHECK.answers.map((a) => a.key);
+    const pages = Math.ceil(qs.length / CHECK_PER_PAGE);
+    const valid = Array.isArray(d.answers) && d.answers.length === qs.length
+      && d.answers.every((a) => a === null || keys.includes(a))
+      && Number.isInteger(d.page) && d.page >= 0 && d.page < pages
+      && (!d.done || d.answers.every((a) => a !== null));
+    let sample = null;
+    if (d.sampleId != null) {
+      const q = QUIZ.pool.find((x) => x.id === d.sampleId && x.ad);
+      if (q) sample = { id: q.id, ...q.ad };
+      else return discard(STORE_KEY.check);
+    }
+    if (!valid) return discard(STORE_KEY.check);
+    return { answers: d.answers, page: d.page, done: !!d.done, counted: !!d.counted, sample };
+  }
+
+  // 퀴즈: { ids: 출제 문항 id, idx, picks: 답한 문항의 고른 번호, done } - 문항 객체는 저장하지 않고 pool에서 id로 찾음
+  function saveQuiz() {
+    const st = quizState;
+    store.set(STORE_KEY.quiz, st && {
+      ids: st.items.map((q) => q.id), idx: st.idx, done: st.done,
+      picks: st.results.map((r) => r.picked)
+    });
+  }
+  function loadQuiz() {
+    const d = store.get(STORE_KEY.quiz);
+    if (!d || !Array.isArray(d.ids) || !Array.isArray(d.picks)) return d ? discard(STORE_KEY.quiz) : null;
+    const items = d.ids.map((id) => QUIZ.pool.find((q) => q.id === id));
+    // pool에서 못 찾는 문항이 있으면(quiz.js 수정 등) 저장분을 버리고 시작 화면으로
+    if (!items.length || items.some((q) => !q)) return discard(STORE_KEY.quiz);
+    const results = [];
+    for (let i = 0; i < d.picks.length; i++) {
+      const q = items[i], p = d.picks[i];
+      if (!q || !Number.isInteger(p) || !q.options[p]) return discard(STORE_KEY.quiz);
+      results.push({ q, ok: !!q.options[p].correct, picked: p });
+    }
+    const done = !!d.done && results.length === items.length;
+    const idx = done ? items.length : d.idx;
+    // 진행 중이면 현재 문항은 출제 범위 안이어야 하고, 답한 문항 수는 현재 번호까지
+    if (!done && (!Number.isInteger(idx) || idx < 0 || idx >= items.length || results.length > idx + 1)) return discard(STORE_KEY.quiz);
+    return { items, idx, results, done };
+  }
+
+  function discard(key) { store.set(key, null); return null; }
+
+  /* ============================================================
      시작
      ============================================================ */
   document.querySelectorAll("[data-site-name]").forEach((el) => (el.textContent = CFG.siteName));
   document.querySelectorAll("[data-project]").forEach((el) => (el.textContent = (CFG.team && CFG.team.project) || ""));
   analytics.init();
+  checkState = loadCheck(); // 새로 고침 전 진행 상태 복원 (판독기 → 퀴즈 순)
+  quizState = loadQuiz();
   window.addEventListener("hashchange", router);
   router();
 })();
