@@ -102,16 +102,16 @@ html { scroll-padding-top: calc(var(--header-h) + 12px); }
 
 /* 번호 섹션: 굵은 선 + 01. + 큰 제목 */
 .sec { padding-block: 40px 56px; }
+/* 번호는 제목 위 한 줄 → 번호·제목·설명·본문이 모두 같은 왼쪽 선에서 시작 */
 .sec-head {
-  display: grid; grid-template-columns: 140px 1fr; gap: 6px 24px; align-items: baseline;
+  display: grid; gap: 6px;
   border-top: var(--rule); padding-top: 16px; margin-bottom: 32px;
 }
 .sec-no { font-size: 1rem; font-weight: 600; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
-.sec-head p { grid-column: 2; color: var(--muted); max-width: 640px; margin-top: 6px; }
+.sec-head p { color: var(--muted); max-width: 640px; margin-top: 4px; }
 @media (max-width: 640px) {
   .sec { padding-block: 28px 40px; }
-  .sec-head { grid-template-columns: 1fr; margin-bottom: 24px; }
-  .sec-head p { grid-column: 1; }
+  .sec-head { margin-bottom: 24px; }
 }
 
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
