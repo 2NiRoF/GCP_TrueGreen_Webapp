@@ -225,9 +225,23 @@
     if (location.hash.startsWith("#/quiz") && e.target.closest('a[href^="#/learn"]')) fromQuiz = true;
   });
 
+  // 홈 스크롤 위치: 홈에서 다른 페이지로 갈 때 기억 → 뒤로/앞으로 가기로 홈에 돌아오면 그 위치로. 새로 고침하면 처음부터
+  // 브라우저 자체 복원은 끔: 뒤로/앞으로 가기 때 위치가 먼저 바뀌면 기억값이 틀어짐 (스크롤은 전부 라우터가 정함)
+  let currentRoute = null;
+  let homeY = 0;
+  try { history.scrollRestoration = "manual"; } catch (e) { /* 지원 안 하는 브라우저 */ }
+  // 단, 홈 링크(로고·메뉴·푸터 '홈', 없는 주소의 '홈으로 가기')를 눌러 온 경우는 맨 위. 복원은 뒤로/앞으로 가기만
+  let homeLinkClicked = false;
+  document.addEventListener("click", (e) => {
+    const isHome = /^#?\/?$/.test(location.hash);
+    if (!isHome && e.target.closest('a[href="#/"]')) homeLinkClicked = true;
+  }, true);
+
   function router() {
+    if (currentRoute === "") homeY = window.scrollY; // 주소가 바뀐 직후라 아직 홈 화면의 스크롤 위치
     runLeave();
     const [name = "", param] = location.hash.replace(/^#\/?/, "").split("/");
+    currentRoute = name;
     const view = routes[name] || viewNotFound;
     if (name !== "learn") fromQuiz = false;
     if (name !== "learn" && name !== "cases") casesReturn = null;
@@ -240,7 +254,9 @@
     const titles = { learn: "알아보기", cases: "사례", quiz: "퀴즈", check: "판독기", about: "소개" };
     document.title = titles[name] ? `${titles[name]} · ${CFG.siteName}` : routes[name] ? CFG.siteName : `페이지 없음 · ${CFG.siteName}`;
     // 페이지 전환은 즉시 맨 위로 (CSS의 smooth를 따르면 애니메이션이 남아, 화면이 정한 스크롤 위치를 덮어씀 - 예: 퀴즈 해설 복원)
-    if (!param) window.scrollTo({ top: 0, behavior: "instant" });
+    // 홈은 기억한 위치로 (처음 들어올 때는 0)
+    if (!param) window.scrollTo({ top: name === "" && !homeLinkClicked ? homeY : 0, behavior: "instant" });
+    homeLinkClicked = false;
     app.focus({ preventScroll: true });
     analytics.page();
   }
