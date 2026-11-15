@@ -9,6 +9,8 @@
 - 정적 사이트 (HTML/CSS/vanilla JS, 빌드 도구·서버 없음). index.html 더블클릭으로 실행 가능해야 함
   - 그래서 데이터는 JSON fetch가 아니라 `window.GW_*` 전역 변수 JS 파일로 둠 (file:// 에서 fetch 불가)
 - 해시 라우팅: `#/`, `#/learn`, `#/learn/<원칙id>`, `#/cases`, `#/quiz`, `#/check`, `#/about`
+  - 없는 주소(#/abc 등) = `viewNotFound` (안내 문구 + 입력한 주소 + 홈 버튼, 제목 '페이지 없음'). 홈으로 조용히 넘기지 않음 (2026-11-16)
+  - '본문으로 건너뛰기'(href="#app")는 app.js가 클릭을 막고 본문 포커스만 옮김 (주소를 바꾸면 라우터가 없는 페이지로 처리)
 - `docs/js/app.js`: 라우터 + 페이지별 view 함수. 콘텐츠를 하드코딩하지 말 것
 - `docs/data/*.js`: 모든 콘텐츠. 비개발자(모둠원, 동아리)가 수정하는 영역 - 주석으로 수정법 유지
 - 배포 예정: GitHub Pages 또는 Vercel. 통계는 GoatCounter(config.js에 주소 넣으면 활성)
@@ -87,6 +89,7 @@
 - 사례 8건 (11/9). cases.js에 선택 필드 `country`(태그에 "해외(프랑스)"), `outcome.label`(배지 글자 덮어쓰기, 예: JDP "자율심의") 추가
 - [x] checklist.js `report.channels` KEITI 신고 링크 → 에코스퀘어 '부당한 환경성 표시·광고 신고' 직접 링크로 교체 (PC·모바일 열림 확인 2026-11-09, 메뉴 경로 `path` 병기). 공정위·국민신문고는 아직 메인 주소
   - toolkit 항목에 `links: [{label, url, path}]` 추가. 에코스퀘어 인증제품현황은 직접 링크가 없어 메인 주소 + 메뉴 경로로 안내
+- 링크 미리보기: index.html og:image·og:url은 GitHub Pages 절대 주소(https://2nirof.github.io/GCP_TrueGreen_Webapp/). 배포 주소가 바뀌면 같이 바꿀 것
 - 배포. 일정: 웹앱 완성·배포 11/9-16 주차, 태성고 특강 11/27(학생 휴대폰 접속), 경기도서관 12/5, 최종 발표 12/14
 
 ## 작업 규칙
@@ -158,6 +161,18 @@
   - 글자 최소 `--fs-min` .8125rem(13px): 배지·태그·출처·사례 dt·예시 라벨·퀴즈 시작 서식 라벨·막대그래프·표 머리글 등. 정의 라벨 SVG 그림 속 글자(10-11px)는 그림이라 제외
   - 실측 390px, 전 페이지·상태(details 펼침, 퀴즈 채점·결과, 판독기 결과 3단계): a·button·summary 40px 미만 0개 (변경 전 10종 120개), 13px 미만 글자 0개
 - 레이아웃: icebergdoc.org 참고 - 번호 섹션(01.) + 큰 타이포 + 사진 카드. app.js `numberer()`, `photo()` 헬퍼
+  - `.sec-head`(알아보기 번호 섹션): 번호를 제목 위 한 줄로 (2026-11-16). 전에는 데스크톱에서 140px 번호 칸 때문에 제목만 들여써져 본문과 어긋남 → 번호·제목·설명·본문 모두 같은 왼쪽 선
+- 다듬기 (2026-11-16)
+  - 사진: 둘러보기·세 관점 7장에 가로 800px 사본 `img/<이름>-800.jpg`(q80, 77-194KB). content.js photo 선택 필드 `small`(사본)·`w`·`h`(원본 픽셀)
+    - app.js `imgAttrs()`: small 있으면 srcset(800w + 원본 w) + sizes(`PHOTO_SIZES`: thumb 96/132px, wide 720px, 기본 420px), w·h 있으면 width/height. 없으면 원본만 (비개발자가 사본 없이 사진을 넣어도 동작)
+    - `.photo img`에 height: auto 필수 (height 속성이 aspect-ratio를 덮지 않게)
+    - 실측: 390px 썸네일·큰 카드 모두 800px판, 1440px 썸네일 800px판. 히어로는 전체 화면이라 원본만 + fetchpriority high
+    - 히어로 preload: index.html head 인라인 스크립트, 홈으로 들어올 때만 (hash가 비었거나 #/). 히어로 사진을 바꾸면 이 주소도 바꿀 것
+  - 퀴즈 문항: 답을 고르면 '다음 문제'(마지막은 '결과 보기')를 화면 아래 고정 바로 (`.back-bar.qnext` + `.back-spacer`, 왼쪽에 '03 / 10 · 맞혔습니다'). 해설의 aria-live 영역 밖, app 끝에 붙임 → 다음 문항으로 가면 innerHTML 교체로 사라짐
+    - `html:has(.back-bar)` scroll-padding-bottom 88px (해설·알아보기 원칙이 바 밑에 가리지 않게). 390px: 해설 끝 756px < 바 위 770px
+  - og:image `img/og.png` 1200×630 (32KB): 연한 바탕 + 로고 점·TrueGreen + 굵은 선 + 「그 ‘친환경’, 누가 확인했나요?」(뒤 절 녹색) + 한 줄 설명. Pretendard로 HTML 렌더링 후 캡처. og:type/locale/url/image:width·height·alt, twitter:card
+  - 푸터: 하단 메뉴(홈·알아보기·사례·퀴즈·판독기·소개, `.footer-nav`, 44px) + 문의처 `[data-contact]`(config.js team.contact·instagram 중 값이 있을 때만, 이메일 형태면 mailto)
+  - 확인 (390/1440px): 홈·알아보기(+원칙 진입)·사례·소개·없는 주소·퀴즈 시작/채점/결과·판독기 시작/문항/결과 - 콘솔 오류 0, 가로 넘침 0, 13px 미만 글자 0, 40px 미만 터치 대상은 a.tag(::after로 44px)뿐
 - 홈: 섹션마다 배치를 다르게 (반복 금지). 히어로 full-bleed 사진+오버레이 → 01 좌우 분할 → 02 큰 카드+썸네일 목록 → 03 진한 녹색 반전(full-bleed) → 04 원칙 4×2 격자 → 마무리(번호 없음, 홈에서 유일한 가운데 정렬: 큰 문장 한 줄 + '판독기 시작'). 컨테이너 1280px
   - 사이트 중심 = 판독기 (2026-11-16). 02 '둘러보기' 큰 카드 = 판독기, 목록 = 연습 퀴즈 → 알아보기 → 실제 사례. 순서·설명은 content.js `home.features` (첫 항목이 큰 카드). 퀴즈 이름 '연습 퀴즈', 설명에 '판독기를 쓰기 전에 … 연습'
   - 마무리 문구·버튼 글자: content.js `home.closing` (지우면 영역이 안 나옴). CSS `.closing`
