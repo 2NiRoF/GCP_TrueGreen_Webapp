@@ -99,11 +99,26 @@
     }
   };
 
+  // 사진 img 속성: small(800px 사본)이 있으면 srcset, w·h(원본 크기)가 있으면 width/height로 자리를 미리 잡음
+  // sizes = 화면에 보이는 대략의 가로 폭 (CSS의 .photo.thumb·.wide·기본 칸 폭과 맞춤)
+  const PHOTO_SIZES = {
+    thumb: "(max-width: 760px) 96px, 132px",
+    wide: "(max-width: 760px) calc(100vw - 40px), 720px",
+    "": "(max-width: 760px) calc(100vw - 40px), 420px"
+  };
+  const imgAttrs = (p, sizes) => [
+    `src="${esc(p.src)}"`,
+    p.small ? `srcset="${esc(p.small)} 800w, ${esc(p.src)} ${Number(p.w) || 1600}w" sizes="${sizes}"` : "",
+    p.w && p.h ? `width="${Number(p.w)}" height="${Number(p.h)}"` : "",
+    `alt="${esc(p.alt)}"`,
+    p.pos ? `style="object-position:${esc(p.pos)}"` : ""
+  ].filter(Boolean).join(" ");
+
   // 사진: src가 있으면 이미지, 없으면 hint 글자가 적힌 빈 자리
   const photo = (p = {}, cls = "") => `
     <figure class="photo ${cls}">
       ${p.src
-        ? `<img src="${esc(p.src)}" alt="${esc(p.alt)}"${p.pos ? ` style="object-position:${esc(p.pos)}"` : ""} loading="lazy">`
+        ? `<img ${imgAttrs(p, PHOTO_SIZES[cls] || PHOTO_SIZES[""])} loading="lazy" decoding="async">`
         : `<div class="photo-slot" aria-hidden="true">${esc(p.hint || "사진")}</div>`}
       ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ""}
     </figure>`;
@@ -251,7 +266,7 @@
     app.innerHTML = `
       <section class="hero-full ${hp.src ? "has-photo" : ""}">
         <div class="hero-bg">
-          ${hp.src ? `<img src="${esc(hp.src)}" alt="${esc(hp.alt)}"${hp.pos ? ` style="object-position:${esc(hp.pos)}"` : ""}>` : `<span class="hero-hint" aria-hidden="true">${esc(hp.hint || "사진")}</span>`}
+          ${hp.src ? `<img ${imgAttrs({ ...hp, small: "" })} fetchpriority="high">` : `<span class="hero-hint" aria-hidden="true">${esc(hp.hint || "사진")}</span>`}
         </div>
         <div class="wrap hero-content">
           <h1>${esc(H.title)}<br><em>${esc(H.titleEm)}</em></h1>

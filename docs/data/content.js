@@ -18,6 +18,9 @@
  *   - 사진 파일을 docs/img/ 폴더에 넣고 src에 경로를 적으세요. 예: src: "img/label-01.jpg"
  *   - src가 비어 있으면 화면에 hint 글자가 적힌 빈 사진 자리가 보입니다.
  *   - alt: 사진을 볼 수 없는 사람을 위한 설명 / caption: 사진 아래 작은 설명 (선택)
+ *   - small / w / h (선택, 빠른 로딩용): small = 가로 800px로 줄인 사본(예: "img/label-01-800.jpg"),
+ *     w·h = 원본 사진의 가로·세로 픽셀 수. small이 있으면 작은 화면·썸네일은 사본을 받고,
+ *     w·h가 있으면 사진이 뜨기 전에 자리를 미리 잡아 화면이 밀리지 않습니다. 없어도 원본만으로 정상 표시됩니다.
  *   - 가로 사진 기준(4:3)으로 잘려 보입니다. 중요한 부분이 잘리면 pos로 보이는 위치를 정하세요. 예: pos: "center 70%" (가로 세로, 0%=위/왼쪽)
  *   - 현재 사진은 Pexels 무료 사진(출처 표기 의무 없음). 원본은 사진자료/ 폴더 홈 맨 위 사진(heroPhoto)은 화면 크기에 맞게 잘립니다.
  */
@@ -29,7 +32,7 @@ window.GW_CONTENT = {
     // 맨 위 화면 가득 채우는 사진 1장 (가로로 넓은 사진 권장, 글자가 위에 올라가므로 어두운 편이 좋음)
     // - 사진 위에 어두운 막(오버레이)을 덮어 글자를 읽기 쉽게 합니다. 휴대폰에서는 사진의 가운데 세로 띠만 보이고, 글자는 화면 아래쪽에 놓입니다.
     // - pos(선택): 사진에서 보일 위치. 예) pos: "30% center" = 왼쪽 30% 지점을 중심으로. 어두운 부분이 글자(화면 아래쪽) 뒤에 오게 맞추면 좋습니다.
-    heroPhoto: { src: "img/hero-shelf.jpg", alt: "마트 냉장 진열대에 음료와 유제품이 빼곡히 놓여 있다", hint: "대표 사진 · 친환경 문구가 붙은 진열대" },
+    heroPhoto: { src: "img/hero-shelf.jpg", w: 1600, h: 810, alt: "마트 냉장 진열대에 음료와 유제품이 빼곡히 놓여 있다", hint: "대표 사진 · 친환경 문구가 붙은 진열대" },
     questions: [
       { q: "무엇이?", a: "제품 전체인가요, 포장이나 원료 하나인가요?" },
       { q: "얼마나?", a: "숫자와 비교 기준이 있나요?" },
@@ -39,10 +42,10 @@ window.GW_CONTENT = {
     // - 첫 번째 항목이 큰 카드, 나머지는 오른쪽 목록에 적힌 순서대로 나옵니다.
     // - 사이트의 중심은 판독기, 퀴즈는 판독기 전에 해 보는 연습입니다. 순서를 바꿀 때 이 흐름을 지켜 주세요.
     features: [
-      { id: "check", title: "판독기", desc: "지금 보고 있는 실제 제품·광고에 체크리스트를 적용해 그린워싱 위험도와 기업에 물어볼 질문을 받아 보세요.", photo: { src: "img/check-recycle-bins.jpg", alt: "종이·플라스틱·금속·유리 분리수거 라벨이 붙은 투명 상자가 쌓여 있다", hint: "판독기 사진" } },
-      { id: "quiz", title: "연습 퀴즈", desc: "판독기를 쓰기 전에, 가상 광고로 그린워싱 신호를 찾는 연습", photo: { src: "img/quiz-green-envelope.jpg", alt: "GREEN이라고 적힌 봉투에 초록 잎이 꽂혀 있다", pos: "center 85%", hint: "퀴즈 사진" } },
-      { id: "learn", title: "알아보기", desc: "법령이 정한 8대 원칙과 소비·기업·환경 관점의 설명", photo: { src: "img/learn-eco-goods.jpg", alt: "나무 탁자 위에 대나무 칫솔, 그물 장바구니, 유리병 같은 생활용품이 놓여 있다", hint: "알아보기 사진" } },
-      { id: "cases", title: "실제 사례", desc: "공정위 제재 등 국내외 실제 사례와 판단이 갈린 사례", photo: { src: "img/cases-clothing-store.jpg", alt: "옷가게 선반과 행거에 색색의 티셔츠가 걸려 있다", hint: "사례 사진" } }
+      { id: "check", title: "판독기", desc: "지금 보고 있는 실제 제품·광고에 체크리스트를 적용해 그린워싱 위험도와 기업에 물어볼 질문을 받아 보세요.", photo: { src: "img/check-recycle-bins.jpg", small: "img/check-recycle-bins-800.jpg", w: 1067, h: 1600, alt: "종이·플라스틱·금속·유리 분리수거 라벨이 붙은 투명 상자가 쌓여 있다", hint: "판독기 사진" } },
+      { id: "quiz", title: "연습 퀴즈", desc: "판독기를 쓰기 전에, 가상 광고로 그린워싱 신호를 찾는 연습", photo: { src: "img/quiz-green-envelope.jpg", small: "img/quiz-green-envelope-800.jpg", w: 1067, h: 1600, alt: "GREEN이라고 적힌 봉투에 초록 잎이 꽂혀 있다", pos: "center 85%", hint: "퀴즈 사진" } },
+      { id: "learn", title: "알아보기", desc: "법령이 정한 8대 원칙과 소비·기업·환경 관점의 설명", photo: { src: "img/learn-eco-goods.jpg", small: "img/learn-eco-goods-800.jpg", w: 1600, h: 1067, alt: "나무 탁자 위에 대나무 칫솔, 그물 장바구니, 유리병 같은 생활용품이 놓여 있다", hint: "알아보기 사진" } },
+      { id: "cases", title: "실제 사례", desc: "공정위 제재 등 국내외 실제 사례와 판단이 갈린 사례", photo: { src: "img/cases-clothing-store.jpg", small: "img/cases-clothing-store-800.jpg", w: 1067, h: 1600, alt: "옷가게 선반과 행거에 색색의 티셔츠가 걸려 있다", hint: "사례 사진" } }
     ],
     // 홈 맨 아래 마무리 (원칙 격자 다음): 한 줄 문장 + 판독기 버튼
     closing: {
@@ -210,7 +213,7 @@ window.GW_CONTENT = {
   axes: [
     {
       id: "consumer",
-      photo: { src: "img/axis-consumer-aisle.jpg", alt: "마트 통로 양쪽 선반에 통조림과 식품이 가득 진열되어 있다", hint: "소비 관점 사진" },
+      photo: { src: "img/axis-consumer-aisle.jpg", small: "img/axis-consumer-aisle-800.jpg", w: 1600, h: 1067, alt: "마트 통로 양쪽 선반에 통조림과 식품이 가득 진열되어 있다", hint: "소비 관점 사진" },
       label: "소비",
       title: "왜 우리는 쉽게 속을까?",
       points: [
@@ -223,7 +226,7 @@ window.GW_CONTENT = {
     },
     {
       id: "company",
-      photo: { src: "img/axis-company-factory.jpg", alt: "파란 하늘 아래 공장 설비와 굴뚝", hint: "기업 관점 사진" },
+      photo: { src: "img/axis-company-factory.jpg", small: "img/axis-company-factory-800.jpg", w: 1600, h: 899, alt: "파란 하늘 아래 공장 설비와 굴뚝", hint: "기업 관점 사진" },
       label: "기업",
       // "진짜 친환경": 붙어 있는 공백( ) 덕분에 모바일에서 "진짜"와 "친환경" 사이가 끊기지 않고 쉼표 뒤에서 줄바꿈됩니다
       title: "왜 그린워싱이 생기고, 진짜 친환경은 어떻게 다른가?",
@@ -236,7 +239,7 @@ window.GW_CONTENT = {
     },
     {
       id: "environment",
-      photo: { src: "img/axis-environment-clothes.jpg", alt: "버려진 옷들이 뒤엉켜 쌓여 있다", hint: "환경 관점 사진" },
+      photo: { src: "img/axis-environment-clothes.jpg", small: "img/axis-environment-clothes-800.jpg", w: 1067, h: 1600, alt: "버려진 옷들이 뒤엉켜 쌓여 있다", hint: "환경 관점 사진" },
       label: "환경",
       title: "그린워싱이 환경에 왜 문제일까?",
       points: [

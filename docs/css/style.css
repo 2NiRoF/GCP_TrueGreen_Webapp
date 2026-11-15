@@ -157,7 +157,7 @@ a.tag:hover { border-color: var(--accent); color: var(--accent-strong); }
 
 /* ---------- 사진 (비어 있으면 자리만 표시) ---------- */
 .photo { margin: 0; min-width: 0; }
-.photo img, .photo-slot { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
+.photo img, .photo-slot { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
 .photo-slot {
   background: var(--sky-soft); border: 1px dashed var(--line);
   display: grid; place-items: center; color: var(--muted); font-size: .82rem; text-align: center; padding: 12px;
