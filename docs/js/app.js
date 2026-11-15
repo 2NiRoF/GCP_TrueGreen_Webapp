@@ -891,10 +891,14 @@
             <p class="verdict">${ok ? "맞혔습니다." : `틀렸습니다. 정답은 ${keys[answer]}입니다.`}</p>
             <p>${esc(q.explain)}</p>
             ${q.signal ? signalTag(q.signal) : ""}
-          </div>
-          <div class="btn-row qnext">
-            <button class="btn btn-primary" data-next>${n === total ? "결과 보기" : "다음 문제"} →</button>
           </div>`;
+        // '다음 문제'는 화면 아래 고정 바 (해설을 읽는 중에도 스크롤 없이 누를 수 있게). 해설 알림(aria-live) 영역 밖에 붙임
+        app.insertAdjacentHTML("beforeend", `
+          <div class="back-spacer" aria-hidden="true"></div>
+          <div class="back-bar qnext"><div class="wrap">
+            <span class="small muted">${pad(n)} / ${pad(total)} · ${ok ? "맞혔습니다" : "틀렸습니다"}</span>
+            <button class="btn btn-primary" data-next>${n === total ? "결과 보기" : "다음 문제"} →</button>
+          </div></div>`);
         app.querySelector("[data-next]").addEventListener("click", next);
       };
 

@@ -500,7 +500,6 @@ html:has(.subnav) { scroll-padding-top: calc(var(--header-h) + var(--subnav-h) +
 .qexp .verdict { font-weight: 700; }
 .qexp.ok .verdict { color: var(--risk-low); }
 .qexp.no .verdict { color: var(--risk-high); }
-.qnext { margin-top: 24px; }
 .nav-row { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
 
 /* 시작·결과 화면: 좌측 정렬 + 큰 숫자 */
@@ -730,4 +729,6 @@ html:has(.subnav) { scroll-padding-top: calc(var(--header-h) + var(--subnav-h) +
   padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
 .back-bar .btn { flex: none; }
 .back-spacer { height: 88px; }
+/* 고정 바가 있으면 scrollIntoView·포커스 이동 때 바 밑에 가려지지 않게 (퀴즈 해설, 알아보기 원칙) */
+html:has(.back-bar) { scroll-padding-bottom: 88px; }
 @media (max-width: 400px) { .back-bar span { display: none; } .back-bar .btn { width: 100%; } }
