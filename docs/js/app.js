@@ -1461,6 +1461,18 @@
      ============================================================ */
   document.querySelectorAll("[data-site-name]").forEach((el) => (el.textContent = CFG.siteName));
   document.querySelectorAll("[data-project]").forEach((el) => (el.textContent = (CFG.team && CFG.team.project) || ""));
+  // 푸터 문의처 (config.js team.contact·instagram 중 값이 있는 것만). 이메일 형태면 메일 링크
+  (() => {
+    const t = CFG.team || {}, el = document.querySelector("[data-contact]");
+    const contact = String(t.contact || "").trim(), insta = String(t.instagram || "").trim();
+    if (!el || (!contact && !insta)) return;
+    const isMail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+    el.innerHTML = [
+      contact ? `문의 ${isMail ? `<a href="mailto:${esc(contact)}">${esc(contact)}</a>` : esc(contact)}` : "",
+      insta ? `<a href="${esc(insta)}" target="_blank" rel="noopener">인스타그램 ↗</a>` : ""
+    ].filter(Boolean).join(" · ");
+    el.hidden = false;
+  })();
   analytics.init();
   checkState = loadCheck(); // 새로 고침 전 진행 상태 복원 (판독기 → 퀴즈 순)
   quizState = loadQuiz();

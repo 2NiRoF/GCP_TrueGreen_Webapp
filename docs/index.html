@@ -54,7 +54,17 @@
 
   <footer class="site-footer">
     <div class="wrap footer-inner">
+      <nav class="footer-nav" aria-label="하단 메뉴">
+        <a href="#/">홈</a>
+        <a href="#/learn">알아보기</a>
+        <a href="#/cases">사례</a>
+        <a href="#/quiz">퀴즈</a>
+        <a href="#/check">판독기</a>
+        <a href="#/about">소개</a>
+      </nav>
       <p><strong data-site-name>TrueGreen</strong> · <span data-project></span></p>
+      <!-- 문의처: data/config.js의 team.contact / team.instagram 값이 있을 때만 표시 -->
+      <p class="small footer-contact" data-contact hidden></p>
       <p class="muted small">이 사이트의 판단 결과는 법적 판단이 아닌 참고용입니다. 퀴즈 속 브랜드는 모두 가상입니다.</p>
     </div>
   </footer>

@@ -699,6 +699,11 @@ html:has(.subnav) { scroll-padding-top: calc(var(--header-h) + var(--subnav-h) +
 /* ---------- 푸터 ---------- */
 .site-footer { border-top: var(--rule); margin-top: 40px; padding-block: 24px 40px; }
 .footer-inner { display: grid; gap: 4px; }
+/* 하단 메뉴: 글자 링크만, 터치 영역 44px (줄 배치는 그대로, 위아래 여백으로 확장) */
+.footer-nav { display: flex; flex-wrap: wrap; column-gap: 20px; margin: -8px 0 8px; }
+.footer-nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--fg); font-weight: 600; text-decoration: none; }
+.footer-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.footer-contact a { padding-block: calc(23px - .6em); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
