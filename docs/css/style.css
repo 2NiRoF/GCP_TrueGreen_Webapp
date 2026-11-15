@@ -696,6 +696,10 @@ html:has(.subnav) { scroll-padding-top: calc(var(--header-h) + var(--subnav-h) +
 @media (max-width: 760px) { .about-grid { grid-template-columns: 1fr; } }
 .member-list { margin: 8px 0 0; padding-left: 20px; }
 
+/* 없는 주소 안내 (#/abc 등) */
+.not-found { padding-block: 72px 120px; }
+.not-found p { max-width: 560px; }
+
 /* ---------- 푸터 ---------- */
 .site-footer { border-top: var(--rule); margin-top: 40px; padding-block: 24px 40px; }
 .footer-inner { display: grid; gap: 4px; }

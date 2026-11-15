@@ -228,7 +228,7 @@
   function router() {
     runLeave();
     const [name = "", param] = location.hash.replace(/^#\/?/, "").split("/");
-    const view = routes[name] || viewHome;
+    const view = routes[name] || viewNotFound;
     if (name !== "learn") fromQuiz = false;
     if (name !== "learn" && name !== "cases") casesReturn = null;
     document.querySelectorAll(".nav a").forEach((a) => {
@@ -238,7 +238,7 @@
     });
     view(param);
     const titles = { learn: "알아보기", cases: "사례", quiz: "퀴즈", check: "판독기", about: "소개" };
-    document.title = titles[name] ? `${titles[name]} · ${CFG.siteName}` : CFG.siteName;
+    document.title = titles[name] ? `${titles[name]} · ${CFG.siteName}` : routes[name] ? CFG.siteName : `페이지 없음 · ${CFG.siteName}`;
     // 페이지 전환은 즉시 맨 위로 (CSS의 smooth를 따르면 애니메이션이 남아, 화면이 정한 스크롤 위치를 덮어씀 - 예: 퀴즈 해설 복원)
     if (!param) window.scrollTo({ top: 0, behavior: "instant" });
     app.focus({ preventScroll: true });
@@ -1338,6 +1338,22 @@
     else showPage();
   }
 
+  // ---------- 없는 주소 (#/abc 등) ----------
+  // 조용히 홈으로 넘기지 않고, 주소가 틀렸다는 것을 알려 준 뒤 홈으로 안내
+  function viewNotFound() {
+    let shown = location.hash;
+    try { shown = decodeURIComponent(shown); } catch (e) { /* 잘못된 %인코딩은 그대로 표시 */ }
+    if (shown.length > 60) shown = shown.slice(0, 60) + "…";
+    app.innerHTML = `
+      <section class="section not-found">
+        <div class="wrap stack">
+          <h1>페이지를 찾을 수 없습니다</h1>
+          <p class="muted">‘${esc(shown)}’ 주소에 해당하는 페이지가 없습니다. 주소가 잘못 입력되었거나 바뀐 페이지일 수 있습니다.</p>
+          <div class="btn-row"><a class="btn btn-primary" href="#/">홈으로 가기</a></div>
+        </div>
+      </section>`;
+  }
+
   // ---------- 소개 ----------
   function viewAbout() {
     const t = CFG.team || {};
@@ -1476,6 +1492,8 @@
   analytics.init();
   checkState = loadCheck(); // 새로 고침 전 진행 상태 복원 (판독기 → 퀴즈 순)
   quizState = loadQuiz();
+  // '본문으로 건너뛰기'(href="#app"): 주소를 바꾸면 라우터가 '없는 페이지'로 처리하므로, 주소는 두고 본문으로 포커스만 옮김
+  document.querySelector(".skip")?.addEventListener("click", (e) => { e.preventDefault(); app.focus(); });
   window.addEventListener("hashchange", router);
   router();
 })();
