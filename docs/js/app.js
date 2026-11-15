@@ -251,7 +251,7 @@
     app.innerHTML = `
       <section class="hero-full ${hp.src ? "has-photo" : ""}">
         <div class="hero-bg">
-          ${hp.src ? `<img src="${esc(hp.src)}" alt="${esc(hp.alt)}">` : `<span class="hero-hint" aria-hidden="true">${esc(hp.hint || "사진")}</span>`}
+          ${hp.src ? `<img src="${esc(hp.src)}" alt="${esc(hp.alt)}"${hp.pos ? ` style="object-position:${esc(hp.pos)}"` : ""}>` : `<span class="hero-hint" aria-hidden="true">${esc(hp.hint || "사진")}</span>`}
         </div>
         <div class="wrap hero-content">
           <h1>${esc(H.title)}<br><em>${esc(H.titleEm)}</em></h1>
