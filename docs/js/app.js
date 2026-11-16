@@ -801,10 +801,10 @@
 
   function viewQuiz() {
     // 시작 화면의 문구 교체 타이머. 시작 버튼·페이지 이동 때 반드시 정리
-    let rotateTimer = null, fadeTimer = null;
+    let rotateTimer = null, onVis = null;
     const stopRotate = () => {
-      clearInterval(rotateTimer); clearTimeout(fadeTimer);
-      rotateTimer = fadeTimer = null;
+      clearInterval(rotateTimer); rotateTimer = null;
+      if (onVis) { document.removeEventListener("visibilitychange", onVis); onVis = null; }
     };
     onLeave(stopRotate);
 
@@ -825,7 +825,7 @@
         <section class="section qi-sec"><div class="wrap qi">
           <h1 class="qi-title" aria-label="이 광고, 믿어도 될까?">
             <span class="qi-line">이 광고,</span>
-            <span class="qi-bracket" aria-hidden="true"><span class="qi-p">(</span><span class="qi-copy">${esc(first)}</span><span class="qi-p">)</span></span>
+            <span class="qi-bracket" aria-hidden="true"><span class="qi-p">(</span><span class="qi-copy"><span class="qi-item">${esc(first)}</span></span><span class="qi-p">)</span></span>
             <span class="qi-line">믿어도 될까?</span>
           </h1>
           ${I.lead ? `<p class="qi-lead">${esc(I.lead)}</p>` : ""}
@@ -841,17 +841,44 @@
         </div></section>`;
       app.querySelector("[data-start]").addEventListener("click", start);
 
-      // 3.5초마다 짧은 페이드로 교체. 동작 줄이기 설정이면 첫 문구 고정
-      const el = app.querySelector(".qi-copy");
+      // 1.7초마다 위로 굴려 교체: 지금 문구는 위로 빠지고, 다음 문구가 아래에서 올라옴.
+      // 두 문구는 같은 grid 칸에 겹쳐 놓고 칸 밖은 잘림(CSS .qi-copy). 동작 줄이기 설정이면 첫 문구 고정
+      const box = app.querySelector(".qi-copy");
       const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (still) return;
-      rotateTimer = setInterval(() => {
-        el.classList.add("is-out");
-        fadeTimer = setTimeout(() => {
-          el.textContent = nextCopy();
-          el.classList.remove("is-out");
-        }, 250);
-      }, 3500);
+      // 정리: 나가던 문구는 지우고, 남은 문구 하나를 이동 없이 제자리에 둠
+      const settle = () => {
+        box.querySelectorAll(".qi-item.is-up").forEach((n) => n.remove());
+        const items = box.querySelectorAll(".qi-item");
+        items.forEach((n, i) => { if (i < items.length - 1) n.remove(); });
+        const cur = items[items.length - 1];
+        if (cur) { cur.style.transition = "none"; void cur.offsetHeight; cur.style.transition = ""; }
+      };
+      const roll = () => {
+        // 숨겨진 동안 밀린 실행·끝나지 않은 전환이 남아 있어도 두 문구 이상 겹치지 않게
+        box.querySelectorAll(".qi-item.is-up").forEach((n) => n.remove());
+        const old = box.querySelector(".qi-item");
+        const item = document.createElement("span");
+        item.className = "qi-item is-below";
+        item.textContent = nextCopy();
+        box.appendChild(item);
+        void item.offsetHeight; // 아래 위치를 먼저 그려야 올라오는 전환이 일어남
+        item.classList.remove("is-below");
+        // 나가는 문구는 자기 이동이 끝나면 스스로 지움 (전환 시간 = 간격이라 일괄 제거 타이머는 막 나가기 시작한 문구까지 지울 수 있음)
+        if (old) {
+          old.classList.add("is-up");
+          old.addEventListener("transitionend", () => old.remove(), { once: true });
+        }
+      };
+      // 다른 창·탭으로 가 있는 동안(알트탭 등)은 멈춤. 브라우저가 타이머·전환을 늦추거나 세워서
+      // 돌아온 순간 밀린 교체가 몰려 문구가 겹쳐 올라가던 문제. 돌아오면 정리 후 다시 시작
+      const run = () => { clearInterval(rotateTimer); rotateTimer = setInterval(roll, 1700); };
+      onVis = () => {
+        if (document.hidden) { clearInterval(rotateTimer); rotateTimer = null; settle(); }
+        else { settle(); run(); }
+      };
+      document.addEventListener("visibilitychange", onVis);
+      run();
     };
 
     const next = () => {

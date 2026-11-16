@@ -524,15 +524,31 @@ html:has(.subnav) { scroll-padding-top: calc(var(--header-h) + var(--subnav-h) +
 .qi-p { font-weight: 300; color: var(--accent-strong); line-height: 1; }
 .qi-copy {
   --qi-copy: clamp(1rem, 3.8vw, 2.1rem);
-  font-size: var(--qi-copy); line-height: 1.3; min-height: calc(var(--qi-copy) * 1.3);
-  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: var(--qi-copy); line-height: 1.3; min-height: calc(var(--qi-copy) * 1.3 + 2 * var(--qi-fade));
+  display: grid; overflow: hidden;
   font-weight: 600; letter-spacing: -0.02em; color: var(--fg);
-  transition: opacity .25s;
+  /* 보이는 창을 위아래로 --qi-fade만큼 넓힘(padding + 같은 크기 음수 margin → 배치는 그대로).
+     넓힌 구간 전체 + 문구 칸 가장자리 조금까지가 옅어지는 구간: 문구가 칸 밖으로 나가면서 천천히 사라짐 */
+  --qi-fade: .7em;
+  padding-block: var(--qi-fade); margin-block: calc(-1 * var(--qi-fade));
+  --qi-mask: linear-gradient(transparent, #000 calc(var(--qi-fade) + .15em), #000 calc(100% - var(--qi-fade) - .15em), transparent);
+  -webkit-mask-image: var(--qi-mask);
+  mask-image: var(--qi-mask);
 }
-.qi-copy.is-out { opacity: 0; }
+/* 문구 굴리기: 나가는 문구와 들어오는 문구가 같은 칸(grid-area 1/1)에 겹침.
+   들어올 문구는 .is-below(칸 아래)에서 시작해 제자리로, 나가는 문구는 .is-up(칸 위)으로.
+   거의 일정한 속도, 전환 1.7s = 교체 간격 1.7s(app.js) → 멈춤 없이 천천히 계속 올라감.
+   이동 거리 = 문구 높이 + 넓힌 구간(--qi-fade) → 창 끝까지 가서 완전히 사라진 뒤 지워짐 */
+.qi-item {
+  grid-area: 1 / 1;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  transition: transform 1.7s cubic-bezier(.35, .15, .65, .85);
+}
+.qi-item.is-below { transform: translateY(calc(100% + var(--qi-fade))); transition: none; }
+.qi-item.is-up { transform: translateY(calc(-100% - var(--qi-fade))); }
 /* 문구 칸 높이: 기본 1줄, 359px 이하만 2줄.
    실측(Pretendard): 24자 문구는 330px 미만에서 줄바꿈, 360px에서 칸의 86%를 차지 → 360px부터 1줄로 둠 */
-@media (max-width: 359px) { .qi-copy { min-height: calc(var(--qi-copy) * 1.3 * 2); } }
+@media (max-width: 359px) { .qi-copy { min-height: calc(var(--qi-copy) * 1.3 * 2 + 2 * var(--qi-fade)); } }
 .qi-lead { margin-top: 32px; font-size: clamp(1.05rem, 2.4vw, 1.3rem); font-weight: 500; line-height: 1.65; max-width: 560px; }
 /* 서식 라벨: 작은 라벨 + 칸마다 위쪽 모서리(┌ ┐) 선 */
 .qi-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 40px 0 0; }
