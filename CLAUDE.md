@@ -90,7 +90,7 @@
 - 사례 8건 (11/9). cases.js에 선택 필드 `country`(태그에 "해외(프랑스)"), `outcome.label`(배지 글자 덮어쓰기, 예: JDP "자율심의") 추가
 - [x] checklist.js `report.channels` KEITI 신고 링크 → 에코스퀘어 '부당한 환경성 표시·광고 신고' 직접 링크로 교체 (PC·모바일 열림 확인 2026-11-09, 메뉴 경로 `path` 병기). 공정위·국민신문고는 아직 메인 주소
   - toolkit 항목에 `links: [{label, url, path}]` 추가. 에코스퀘어 인증제품현황은 직접 링크가 없어 메인 주소 + 메뉴 경로로 안내
-- 링크 미리보기: index.html og:image·og:url은 GitHub Pages 절대 주소(https://2nirof.github.io/GCP_TrueGreen_Webapp/). 배포 주소가 바뀌면 같이 바꿀 것
+- 링크 미리보기: index.html og:image·og:url은 GitHub Pages 절대 주소(https://2nirof.github.io/TrueGreen/, 저장소 이름 TrueGreen으로 변경 후 2026-11-16 반영). 배포 주소가 바뀌면 같이 바꿀 것
 - 배포. 일정: 웹앱 완성·배포 11/9-16 주차, 태성고 특강 11/27(학생 휴대폰 접속), 경기도서관 12/5, 최종 발표 12/14
 
 ## 작업 규칙
@@ -171,7 +171,8 @@
     - 히어로 preload: index.html head 인라인 스크립트, 홈으로 들어올 때만 (hash가 비었거나 #/). 히어로 사진을 바꾸면 이 주소도 바꿀 것
   - 퀴즈 문항: 답을 고르면 '다음 문제'(마지막은 '결과 보기')를 화면 아래 고정 바로 (`.back-bar.qnext` + `.back-spacer`, 왼쪽에 '03 / 10 · 맞혔습니다'). 해설의 aria-live 영역 밖, app 끝에 붙임 → 다음 문항으로 가면 innerHTML 교체로 사라짐
     - `html:has(.back-bar)` scroll-padding-bottom 88px (해설·알아보기 원칙이 바 밑에 가리지 않게). 390px: 해설 끝 756px < 바 위 770px
-  - og:image `img/og.png` 1200×630 (35KB): 연한 바탕 + 로고(반쪽 잎, 2026-11-16 점에서 교체)·TrueGreen + 굵은 선 + 「그 ‘친환경’, 누가 확인했나요?」(뒤 절 녹색) + 한 줄 설명. Pretendard로 HTML 렌더링 후 캡처. og:type/locale/url/image:width·height·alt, twitter:card
+  - og:image `img/og.jpg` 1200×630 (q90, 약 110KB, 2026-11-16 교체): 생성형 AI로 만든 3D 반쪽 잎(왼쪽 반 광택 녹색, 오른쪽 반 유리) 바탕 + 왼쪽에 로고·TrueGreen, 짧은 선, 「그 ‘친환경’, / 누가 확인했나요?」(둘째 줄 #0f6b50, 76px ExtraBold), 한 줄 설명. 사진 바탕이라 PNG(600KB) 대신 JPG
+    - 원본·편집용: `사진자료/OG/og-bg-leaf.png`(1733×908 바탕), `사진자료/OG/og-source.html`(Pretendard로 열어 1200×630 캡처). og:image:type image/jpeg. og:type/locale/url/image:width·height·alt, twitter:card
   - 푸터: 하단 메뉴(홈·알아보기·사례·퀴즈·판독기·소개, `.footer-nav`, 44px) + 문의처 `[data-contact]`(config.js team.contact·instagram 중 값이 있을 때만, 이메일 형태면 mailto)
   - 확인 (390/1440px): 홈·알아보기(+원칙 진입)·사례·소개·없는 주소·퀴즈 시작/채점/결과·판독기 시작/문항/결과 - 콘솔 오류 0, 가로 넘침 0, 13px 미만 글자 0, 40px 미만 터치 대상은 a.tag(::after로 44px)뿐
 - 로고 (2026-11-16): 반쪽 잎 - 왼쪽 반은 꽉 찬 잎(진짜 초록), 오른쪽 반은 외곽선만(겉만 초록). Recraft Logo Maker로 생성
