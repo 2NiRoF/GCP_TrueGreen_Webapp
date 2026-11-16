@@ -567,7 +567,7 @@
           ${head("직접 확인하는 방법")}
           <ol class="steps">
             ${C.toolkit.map((t) => `<li class="step"><h3>${esc(t.title)}</h3><p class="muted small">${esc(t.body)}</p>${(t.links || []).map((l) => `
-              <p class="step-link small"><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>${l.path ? `<br><span class="muted">${esc(l.path)}</span>` : ""}</p>`).join("")}</li>`).join("")}
+              <p class="step-link small"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>${l.path ? `<br><span class="muted">${esc(l.path)}</span>` : ""}</p>`).join("")}</li>`).join("")}
           </ol>
         </div>
       </section>
@@ -711,7 +711,7 @@
               <dl><div><dt>무엇이 문제였나</dt><dd>${esc(c.problem)}</dd></div></dl>
               <div class="outcome ${esc(c.outcome.type)}">${esc(c.outcome.text)}</div>
               <div class="tags">${c.signals.map(signalTag).join("")}</div>
-              <p class="sources">출처: ${c.sources.map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`).join(" · ")}</p>
+              <p class="sources">출처: ${c.sources.map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.label)}</a>`).join(" · ")}</p>
             </div>
           </details>
         </article>`).join("");
@@ -1258,7 +1258,7 @@
                 <li>
                   <p><strong>${esc(c.who)}</strong>${c.law ? ` <span class="small muted">${esc(c.law)}</span>` : ""}</p>
                   <p class="small muted">${esc(c.what)}</p>
-                  <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.urlLabel)} ↗</a>
+                  <a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.urlLabel)} ↗</a>
                   ${c.path ? `<p class="small muted">${esc(c.path)}</p>` : ""}
                 </li>`).join("")}
             </ul>
