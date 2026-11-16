@@ -67,7 +67,7 @@ html { scroll-padding-top: calc(var(--header-h) + 12px); }
 .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--line); }
 .header-inner { display: flex; align-items: stretch; justify-content: space-between; gap: 16px; height: var(--header-h); }
 .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: 44px; text-decoration: none; color: var(--fg); font-weight: 700; font-size: 1.05rem; white-space: nowrap; letter-spacing: -0.02em; }
-.brand-mark { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.brand-mark { display: block; width: auto; height: 22px; flex-shrink: 0; }   /* img/logo.svg (반쪽 잎). 색은 SVG 안에 #178f6b로 고정 */
 .nav { display: flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .nav::-webkit-scrollbar { display: none; }
 .nav a {

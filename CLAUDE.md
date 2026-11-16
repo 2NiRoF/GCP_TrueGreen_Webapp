@@ -171,9 +171,13 @@
     - 히어로 preload: index.html head 인라인 스크립트, 홈으로 들어올 때만 (hash가 비었거나 #/). 히어로 사진을 바꾸면 이 주소도 바꿀 것
   - 퀴즈 문항: 답을 고르면 '다음 문제'(마지막은 '결과 보기')를 화면 아래 고정 바로 (`.back-bar.qnext` + `.back-spacer`, 왼쪽에 '03 / 10 · 맞혔습니다'). 해설의 aria-live 영역 밖, app 끝에 붙임 → 다음 문항으로 가면 innerHTML 교체로 사라짐
     - `html:has(.back-bar)` scroll-padding-bottom 88px (해설·알아보기 원칙이 바 밑에 가리지 않게). 390px: 해설 끝 756px < 바 위 770px
-  - og:image `img/og.png` 1200×630 (32KB): 연한 바탕 + 로고 점·TrueGreen + 굵은 선 + 「그 ‘친환경’, 누가 확인했나요?」(뒤 절 녹색) + 한 줄 설명. Pretendard로 HTML 렌더링 후 캡처. og:type/locale/url/image:width·height·alt, twitter:card
+  - og:image `img/og.png` 1200×630 (35KB): 연한 바탕 + 로고(반쪽 잎, 2026-11-16 점에서 교체)·TrueGreen + 굵은 선 + 「그 ‘친환경’, 누가 확인했나요?」(뒤 절 녹색) + 한 줄 설명. Pretendard로 HTML 렌더링 후 캡처. og:type/locale/url/image:width·height·alt, twitter:card
   - 푸터: 하단 메뉴(홈·알아보기·사례·퀴즈·판독기·소개, `.footer-nav`, 44px) + 문의처 `[data-contact]`(config.js team.contact·instagram 중 값이 있을 때만, 이메일 형태면 mailto)
   - 확인 (390/1440px): 홈·알아보기(+원칙 진입)·사례·소개·없는 주소·퀴즈 시작/채점/결과·판독기 시작/문항/결과 - 콘솔 오류 0, 가로 넘침 0, 13px 미만 글자 0, 40px 미만 터치 대상은 a.tag(::after로 44px)뿐
+- 로고 (2026-11-16): 반쪽 잎 - 왼쪽 반은 꽉 찬 잎(진짜 초록), 오른쪽 반은 외곽선만(겉만 초록). Recraft Logo Maker로 생성
+  - 원본: `사진자료/로고/truegreen-color.svg`(viewBox 4358, #2E8B3E)·`-2048.png`. 배포 파일은 원본을 높이 100 좌표로 줄이고 색을 #178f6b(--accent)로 바꾼 것
+  - `img/logo.svg`(헤더 `.brand-mark` img, 높이 22px), `img/favicon.svg`(정사각 viewBox) + `favicon-32.png` + `apple-touch-icon.png`(180, 흰 바탕)
+  - 외곽선 쪽 path에만 같은 색 stroke 1.2 - 16px에서 오른쪽 반이 사라지지 않게. 가운데·끊긴 틈은 유지됨
 - 홈: 섹션마다 배치를 다르게 (반복 금지). 히어로 full-bleed 사진+오버레이 → 01 좌우 분할 → 02 큰 카드+썸네일 목록 → 03 진한 녹색 반전(full-bleed) → 04 원칙 4×2 격자 → 마무리(번호 없음, 홈에서 유일한 가운데 정렬: 큰 문장 한 줄 + '판독기 시작'). 컨테이너 1280px
   - 사이트 중심 = 판독기 (2026-11-16). 02 '둘러보기' 큰 카드 = 판독기, 목록 = 연습 퀴즈 → 알아보기 → 실제 사례. 순서·설명은 content.js `home.features` (첫 항목이 큰 카드). 퀴즈 이름 '연습 퀴즈', 설명에 '판독기를 쓰기 전에 … 연습'
   - 마무리 문구·버튼 글자: content.js `home.closing` (지우면 영역이 안 나옴). CSS `.closing`
